@@ -21,3 +21,11 @@ All notable changes to this project will be documented in this file. This projec
   - src/app/globals.css — design tokens and dark/light theme variables
   - src/app/layout.tsx, src/app/page.tsx — root layout and landing page placeholders
   - src/app/sign-in/page.tsx, src/app/dashboard/page.tsx — placeholder routes with no real auth or data yet
+
+### Fixed
+
+- PROJECT_STATUS.md — corrected a markdown formatting error where the editor had auto-duplicated checkbox list markers on several lines.
+
+### Notes
+
+- Nothing in this repository has been installed, compiled, run, or tested. All source files listed above are plain-text scaffolding only. Real implementation must happen in a proper local development environment (e.g. Claude Code CLI).
