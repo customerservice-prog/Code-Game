@@ -1233,6 +1233,101 @@ update: {},
 create: { missionId: jsMission4.id, skillId: skillLoops.id },
 });
 
+
+// ---------- Mission prompts, options, and grading specs ----------
+type MissionMeta = {
+  prompt: string;
+  options?: string[];
+  test: Record<string, unknown>;
+};
+
+const MISSION_META: Record<string, MissionMeta> = {
+  "identify-the-request": {
+    prompt: "Which HTTP method should you use to fetch data from a server without changing anything, and without sending a request body?",
+    options: ["GET", "POST", "PUT", "DELETE"],
+    test: { checkType: "mc", correctIndex: 0 },
+  },
+  "find-the-entry-point": {
+    prompt: "Given the project's folder structure, which file path is the homepage entry point that answers requests to the site's root URL (a single forward slash)?",
+    test: { checkType: "text_exact", answer: "src/app/page.tsx", acceptableAnswers: ["app/page.tsx", "page.tsx", "src/app/page.tsx"] },
+  },
+  "choose-the-right-command": {
+    prompt: "Which terminal command moves you into a different folder?",
+    options: ["cd", "ls", "mkdir", "pwd"],
+    test: { checkType: "mc", correctIndex: 0 },
+  },
+  "predict-the-path": {
+    prompt: "This file needs to import from src/lib/auth.ts. What import path replaces the placeholder so the import resolves correctly?",
+    test: { checkType: "text_exact", answer: "../../lib/auth", acceptableAnswers: ["../../lib/auth", "../../lib/auth.ts"] },
+  },
+  "spot-the-element": {
+    prompt: "Which tag defines a top-level heading?",
+    options: ["<h1>", "<p>", "<div>", "<span>"],
+    test: { checkType: "mc", correctIndex: 0 },
+  },
+  "fix-the-nesting": {
+    prompt: "Fix the closing tag order below so the elements are properly nested, then submit.",
+    test: { checkType: "nesting_order", mustContain: ["<div>", "<p>", "</p>", "</div>"], firstClose: "</p>", secondClose: "</div>" },
+  },
+  "choose-the-heading-level": {
+    prompt: "A page titled with an <h1> should use which tag for its next-level sections?",
+    options: ["<h2>", "<h3>", "<h1> again", "<h4>"],
+    test: { checkType: "mc", correctIndex: 0 },
+  },
+  "write-an-accessible-image": {
+    prompt: "Add a descriptive alt attribute to this image tag, then submit.",
+    test: { checkType: "regex_all", patterns: ['<img', 'alt="[^"]'] },
+  },
+  "identify-the-selector": {
+    prompt: "In the rule p { color: navy; }, what part is the selector?",
+    options: ["p", "color", "navy", "{ }"],
+    test: { checkType: "mc", correctIndex: 0 },
+  },
+  "predict-the-winning-rule": {
+    prompt: "Given the two conflicting rules above, what color will the paragraph's text render?",
+    test: { checkType: "text_exact", answer: "navy" },
+  },
+  "calculate-the-box-size": {
+    prompt: "What is the total rendered width of .box, in pixels?",
+    test: { checkType: "text_exact", answer: "130px", acceptableAnswers: ["130px", "130"] },
+  },
+  "fix-the-flex-layout": {
+    prompt: "Add the missing property so justify-content takes effect, then submit.",
+    test: { checkType: "regex_all", patterns: ["display", "flex"] },
+  },
+  "predict-the-score": {
+    prompt: "What number does this code print to the console?",
+    test: { checkType: "text_exact", answer: "8" },
+  },
+  "identify-the-operator": {
+    prompt: "Which operator checks that two values are equal without converting their types?",
+    options: ["===", "==", "=", "!="],
+    test: { checkType: "mc", correctIndex: 0 },
+  },
+  "predict-the-branch": {
+    prompt: "What does this code print to the console?",
+    test: { checkType: "text_exact", answer: "Not hot" },
+  },
+  "fix-the-infinite-loop": {
+    prompt: "Fix the loop so it prints 0 through 4 and terminates, then submit. Your code will actually run.",
+    test: { checkType: "js_run", expectedLogs: ["0", "1", "2", "3", "4"] },
+  },
+};
+
+for (const [slug, meta] of Object.entries(MISSION_META)) {
+  const mission = await prisma.mission.findFirst({ where: { slug } });
+  if (!mission) continue;
+  await prisma.mission.update({
+    where: { id: mission.id },
+    data: { prompt: meta.prompt, options: meta.options ?? undefined },
+  });
+  await prisma.missionTest.upsert({
+    where: { missionId: mission.id },
+    update: { expected: meta.test },
+    create: { missionId: mission.id, expected: meta.test },
+  });
+}
+
 console.log("Seed complete: worlds, Web Foundations (2 modules, 4 lessons, 4 missions), HTML Harbor (2 modules, 4 lessons, 4 missions), CSS City (2 modules, 4 lessons, 4 missions), and JavaScript Jungle (2 modules, 4 lessons, 4 missions) upserted.");
 }
 
