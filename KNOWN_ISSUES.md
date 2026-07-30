@@ -17,10 +17,19 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 - Severity: Medium
 - Area: Curriculum / Interactive missions
 - Description: The lesson viewer lists each lesson's missions (title, type, XP) but there is no UI to actually submit an answer, run code, or receive a grade. This is intentionally deferred to CLAUDE.md's Phase 4 (Interactive missions).
-- Impact: Learners can read lesson content and mark lessons complete, but cannot yet complete missions for XP or skill mastery.
+- Impact: Learners can read lesson content and mark lessons complete, but cannot yet complete missions for XP or skill mastery. Note: as of 2026-07-30, lesson completion itself does award real XP and update a real streak - only mission-level XP/grading remains unbuilt.
 - Workaround: The mission list is clearly labeled "Interactive mission solving and grading is not built yet" so it is not presented as a finished feature.
 - Status: Open
 - Date Logged: 2026-07-29
+
+### Title: Achievements and mastery scoring are not implemented
+- Severity: Low
+- Area: Learning progress
+- Description: The Achievement/UserAchievement and UserSkill/masteryScore tables exist in the schema but nothing writes to them yet. Only XP and streaks (added 2026-07-30) are real so far.
+- Impact: The dashboard explicitly tells learners these are not implemented yet rather than showing fake badges or mastery levels.
+- Workaround: None needed - honestly labeled as not implemented in the UI.
+- Status: Open
+- Date Logged: 2026-07-30
 
 ### Title: AI tutor, email, error tracking, and rate limiting are unconfigured
 - Severity: Medium
@@ -41,6 +50,16 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 - Date Logged: 2026-07-29
 
 ## Resolved Issues
+
+### Title: A GitHub web-editor commit creating a new file silently did not save, breaking 4 deployments
+- Severity: High
+- Area: Documentation / tooling process
+- Description: While adding src/lib/gamification.ts through the GitHub web editor's "new file" flow, the commit dialog showed a normal success state (confirmed commit message, "Commit directly to the main branch" selected), but the file was not actually present in the repository afterward. Four subsequent commits that imported from "@/lib/gamification" (actions.ts, mark-complete-button.tsx, dashboard/page.tsx, world-map/page.tsx) were then made on top of a repository that did not contain that file, and each triggered a Railway deployment that failed at build time with "Module not found: Can't resolve '@/lib/gamification'".
+- Impact: Four consecutive Railway deployments failed. The live site was never affected, since Railway kept serving the last successful deployment throughout, but real progress tracking and time were lost until this was caught.
+- Workaround/Fix: Caught by checking Railway's deployment history directly (showed "FAILED" with build logs naming the missing module) instead of assuming success. Confirmed the file was missing by browsing the src/lib directory on GitHub. Recreated src/lib/gamification.ts, and this time verified the file's presence in the GitHub directory listing before moving on to the next step. Confirmed the next Railway deployment succeeded and the live site showed correct XP/streak values.
+- Status: Resolved
+- Date Logged: 2026-07-30
+- Date Resolved: 2026-07-30
 
 ### Title: PROJECT_STATUS.md update silently produced an empty commit
 - Severity: Medium
