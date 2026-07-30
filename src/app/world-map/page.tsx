@@ -29,13 +29,34 @@ export default async function WorldMapPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <div className="border border-border rounded-lg bg-panel px-4 py-2 text-center min-w-[90px]">
+          <div
+            className="rounded-lg bg-gradient-to-br from-panel to-background border border-primary px-4 py-2 text-center min-w-[90px]"
+            style={{ boxShadow: "0 0 14px -4px var(--color-primary)" }}
+          >
             <p className="text-xs text-text-muted">⚡ XP</p>
-            <p className="text-lg font-semibold">{stats.totalXp}</p>
+            <p className="text-lg font-semibold text-primary">{stats.totalXp}</p>
           </div>
-          <div className="border border-border rounded-lg bg-panel px-4 py-2 text-center min-w-[90px]">
+          <div
+            className="rounded-lg bg-gradient-to-br from-panel to-background border border-success px-4 py-2 text-center min-w-[110px]"
+            style={{ boxShadow: "0 0 14px -4px var(--color-success)" }}
+          >
+            <p className="text-xs text-text-muted">⭐ Level {stats.level}</p>
+            <div className="h-1.5 w-full rounded-full bg-border overflow-hidden mt-1.5">
+              <div
+                className="h-full rounded-full bg-success transition-all duration-motion"
+                style={{ width: `${stats.levelProgressPct}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-text-muted mt-1">
+              {stats.xpIntoLevel} / {stats.xpForNextLevel} XP
+            </p>
+          </div>
+          <div
+            className="rounded-lg bg-gradient-to-br from-panel to-background border border-warning px-4 py-2 text-center min-w-[90px]"
+            style={{ boxShadow: "0 0 14px -4px var(--color-warning)" }}
+          >
             <p className="text-xs text-text-muted">🔥 Streak</p>
-            <p className="text-lg font-semibold">{stats.currentStreak}</p>
+            <p className="text-lg font-semibold text-warning">{stats.currentStreak}</p>
           </div>
         </div>
       </div>
@@ -77,7 +98,7 @@ export default async function WorldMapPage() {
                 <div className="mt-4">
                   <div className="h-2 rounded-full bg-border overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-success transition-all duration-motion"
+                      className="h-full rounded-full bg-gradient-to-r from-success to-info transition-all duration-motion"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
