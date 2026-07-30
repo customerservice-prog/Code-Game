@@ -7,7 +7,7 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 ### Title: Curriculum content volume is far below the launch minimum
 - Severity: Medium
 - Area: Curriculum
-- Description: Only 1 of 17 worlds (Web Foundations) has real published content: 1 module, 2 lessons, 2 missions. CLAUDE.md section 12 requires at least 30 lessons and 100 missions at launch.
+- Description: Only 1 of 17 worlds (Web Foundations) has real published content: 2 modules, 4 lessons, 4 missions. CLAUDE.md section 12 requires at least 30 lessons and 100 missions at launch.
 - Impact: The product is not launch-ready from a content perspective, even though the underlying engine (data model, seed pipeline, renderer, progress tracking) is real and working.
 - Workaround: The other 16 worlds are correctly marked "Upcoming" in the UI rather than shown as empty/broken, per CLAUDE.md section 11.
 - Status: Open
@@ -41,6 +41,16 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 - Date Logged: 2026-07-29
 
 ## Resolved Issues
+
+### Title: PROJECT_STATUS.md update silently produced an empty commit
+- Severity: Medium
+- Area: Documentation / tooling process
+- Description: A prior commit titled "Update PROJECT_STATUS.md" was made via the GitHub web editor's clipboard-paste workflow, but the paste did not actually change any text before committing, resulting in a real commit with 0 files changed. This left the document stale, still describing the curriculum engine as not started even after it had been built and verified live.
+- Impact: The tracking document did not reflect real, verified project state, which could have misled anyone reading it about progress.
+- Workaround/Fix: Discovered by checking the commit diff directly (GitHub showed "0 file changed" for that commit) rather than trusting the commit list alone. Rewrote PROJECT_STATUS.md with accurate current state and verified the new commit actually contains a real diff before moving on. Going forward, each editor paste is verified with a screenshot of both the start and end of the file before committing.
+- Status: Resolved
+- Date Logged: 2026-07-29
+- Date Resolved: 2026-07-29
 
 ### Title: Sign-in page is non-functional
 - Severity: Critical
