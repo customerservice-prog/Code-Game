@@ -16,29 +16,55 @@ export function MarkCompleteButton({
   const [justCompleted, setJustCompleted] = useState(false);
   const [xpAwarded, setXpAwarded] = useState<number | null>(null);
   const [streak, setStreak] = useState<number | null>(null);
+  const [level, setLevel] = useState<number | null>(null);
+  const [xpIntoLevel, setXpIntoLevel] = useState<number | null>(null);
+  const [xpForNextLevel, setXpForNextLevel] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   if (completed) {
+    const levelPct =
+      xpIntoLevel !== null && xpForNextLevel
+        ? Math.round((xpIntoLevel / xpForNextLevel) * 100)
+        : 0;
+
     return (
       <div
-        className={`flex items-center gap-3 border border-success rounded-lg p-4 ${
+        className={`border border-success rounded-lg p-4 bg-gradient-to-br from-panel to-background ${
           justCompleted ? "animate-pop-in" : ""
         }`}
       >
-        <span className="text-2xl leading-none" aria-hidden="true">
-          🎉
-        </span>
-        <div>
-          <p className="text-success font-medium">Lesson complete!</p>
-          <p className="text-text-muted text-sm">
-            {xpAwarded ? `⚡ +${xpAwarded} XP earned. ` : ""}
-            {streak !== null && streak > 0
-              ? `🔥 ${streak}-day streak. `
-              : ""}
-            Head back to the world map to keep going.
-          </p>
+        <div className="flex items-center gap-3">
+          <span className="text-2xl leading-none" aria-hidden="true">
+            🎉
+          </span>
+          <div>
+            <p className="text-success font-medium">Lesson complete!</p>
+            <p className="text-text-muted text-sm">
+              {xpAwarded ? `⚡ +${xpAwarded} XP earned. ` : ""}
+              {streak !== null && streak > 0
+                ? `🔥 ${streak}-day streak. `
+                : ""}
+              Head back to the world map to keep going.
+            </p>
+          </div>
         </div>
+        {level !== null && (
+          <div className="mt-3">
+            <div className="flex items-center justify-between text-xs text-text-muted mb-1">
+              <span>⭐ Level {level}</span>
+              <span>
+                {xpIntoLevel} / {xpForNextLevel} XP
+              </span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-border overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-primary to-success transition-all duration-motion"
+                style={{ width: `${levelPct}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -57,6 +83,9 @@ export function MarkCompleteButton({
               setJustCompleted(true);
               setXpAwarded(result.xpAwarded);
               setStreak(result.currentStreak);
+              setLevel(result.level);
+              setXpIntoLevel(result.xpIntoLevel);
+              setXpForNextLevel(result.xpForNextLevel);
             } catch {
               setError("Could not save progress. Please try again.");
             }
