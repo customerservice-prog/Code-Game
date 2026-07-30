@@ -17,17 +17,17 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 - Severity: Medium
 - Area: Curriculum / Interactive missions
 - Description: The lesson viewer lists each lesson's missions (title, type, XP) but there is no UI to actually submit an answer, run code, or receive a grade. This is intentionally deferred to CLAUDE.md's Phase 4 (Interactive missions).
-- Impact: Learners can read lesson content and mark lessons complete, but cannot yet complete missions for XP or skill mastery. Note: as of 2026-07-30, lesson completion itself does award real XP and update a real streak - only mission-level XP/grading remains unbuilt.
+- Impact: Learners can read lesson content and mark lessons complete, but cannot yet complete missions for XP or skill mastery. Note: as of 2026-07-30, lesson completion itself does award real XP/levels and update a real streak - only mission-level XP/grading remains unbuilt.
 - Workaround: The mission list is clearly labeled "Interactive mission solving and grading is not built yet" so it is not presented as a finished feature.
 - Status: Open
 - Date Logged: 2026-07-29
 
-### Title: Achievements and mastery scoring are not implemented
+### Title: Mastery scoring is not implemented
 - Severity: Low
 - Area: Learning progress
-- Description: The Achievement/UserAchievement and UserSkill/masteryScore tables exist in the schema but nothing writes to them yet. Only XP and streaks (added 2026-07-30) are real so far.
-- Impact: The dashboard explicitly tells learners these are not implemented yet rather than showing fake badges or mastery levels.
-- Workaround: None needed - honestly labeled as not implemented in the UI.
+- Description: The UserSkill/masteryScore tables exist in the schema but nothing writes to them yet. XP, levels, streaks, and a first achievements system (all added 2026-07-30) are real so far; per-skill mastery scoring is the remaining unbuilt piece of learning progress.
+- Impact: The dashboard does not show any skill mastery breakdown - only XP/level/streak/achievements, all of which are real.
+- Workaround: None needed - mastery scoring simply is not surfaced anywhere yet, so nothing fake is shown.
 - Status: Open
 - Date Logged: 2026-07-30
 
@@ -51,6 +51,16 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 
 ## Resolved Issues
 
+### Title: Achievements were not implemented
+- Severity: Low
+- Area: Learning progress
+- Description: The Achievement/UserAchievement tables existed in the schema but nothing wrote to them or showed real earned/locked state anywhere in the UI.
+- Impact: Learners had no way to see recognition for real milestones beyond raw XP/streak numbers.
+- Workaround/Fix: Added a getAchievements helper in src/lib/gamification.ts that derives five real achievements (First Steps, Getting Serious, Streak Starter, Streak Keeper, World Graduate) entirely from existing real data (completed-lesson count, current/longest streak, and per-world completion), with no new database writes needed. Rendered as an Earned/Locked grid on the dashboard. Verified live: completing the final lesson in Web Foundations flipped "World Graduate" from Locked to Earned in production.
+- Status: Resolved
+- Date Logged: 2026-07-30
+- Date Resolved: 2026-07-30
+
 ### Title: A GitHub web-editor commit creating a new file silently did not save, breaking 4 deployments
 - Severity: High
 - Area: Documentation / tooling process
@@ -66,7 +76,7 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 - Area: Documentation / tooling process
 - Description: A prior commit titled "Update PROJECT_STATUS.md" was made via the GitHub web editor's clipboard-paste workflow, but the paste did not actually change any text before committing, resulting in a real commit with 0 files changed. This left the document stale, still describing the curriculum engine as not started even after it had been built and verified live.
 - Impact: The tracking document did not reflect real, verified project state, which could have misled anyone reading it about progress.
-- Workaround/Fix: Discovered by checking the commit diff directly (GitHub showed "0 file changed" for that commit) rather than trusting the commit list alone. Rewrote PROJECT_STATUS.md with accurate current state and verified the new commit actually contains a real diff before moving on. Going forward, each editor paste is verified with a screenshot of both the start and end of the file before committing.
+- Workaround/Fix: Discovered by checking the commit diff directly (GitHub showed "0 file changed" for that commit) rather than trusting the commit list alone. Rewrote PROJECT_STATUS.md with accurate current state and verified the new commit actually contains a real diff before moving on. Going forward, each editor paste is verified with a screenshot of both the start and end of the file before committing. (This same class of paste-silently-not-applying bug recurred several more times during later gamification/achievements work and was caught every time using the same verification habit - always check the actual rendered content or the commit's file diff, never assume a click-through succeeded.)
 - Status: Resolved
 - Date Logged: 2026-07-29
 - Date Resolved: 2026-07-29
