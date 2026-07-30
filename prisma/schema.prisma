@@ -8,8 +8,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -32,21 +32,21 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  profile       UserProfile?
-  settings      UserSettings?
-  invitationsSent   Invitation[]      @relation("InvitationsSent")
-  lessonProgress    LessonProgress[]
-  missionAttempts   MissionAttempt[]
-  userSkills        UserSkill[]
-  achievements      UserAchievement[]
-  notifications     Notification[]
-  notes             Note[]
-  bookmarks         Bookmark[]
-  savedCode         SavedCode[]
-  streak            Streak?
-  auditLogs         AuditLog[]
+  accounts         Account[]
+  sessions         Session[]
+  profile          UserProfile?
+  settings         UserSettings?
+  invitationsSent  Invitation[] @relation("InvitationsSent")
+  lessonProgress   LessonProgress[]
+  missionAttempts  MissionAttempt[]
+  userSkills       UserSkill[]
+  achievements     UserAchievement[]
+  notifications    Notification[]
+  notes            Note[]
+  bookmarks        Bookmark[]
+  savedCode        SavedCode[]
+  streak           Streak?
+  auditLogs        AuditLog[]
 }
 
 model Account {
@@ -86,14 +86,14 @@ model VerificationToken {
 }
 
 model Invitation {
-  id          String    @id @default(cuid())
-  email       String
-  tokenHash   String    @unique
-  role        UserRole  @default(LEARNER)
-  invitedById String
-  expiresAt   DateTime
-  usedAt      DateTime?
-  createdAt   DateTime  @default(now())
+  id           String    @id @default(cuid())
+  email        String
+  tokenHash    String    @unique
+  role         UserRole  @default(LEARNER)
+  invitedById  String
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime  @default(now())
 
   invitedBy User @relation("InvitationsSent", fields: [invitedById], references: [id])
 }
@@ -101,24 +101,24 @@ model Invitation {
 // ---------- User configuration ----------
 
 model UserProfile {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  displayName    String?
-  avatarUrl      String?
-  experienceSelf String?
-  goals          String?
-  dailyGoalXp    Int      @default(20)
+  id              String  @id @default(cuid())
+  userId          String  @unique
+  displayName     String?
+  avatarUrl       String?
+  experienceSelf  String?
+  goals           String?
+  dailyGoalXp     Int     @default(20)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserSettings {
-  id                String  @id @default(cuid())
-  userId            String  @unique
-  theme             String  @default("dark")
-  reducedMotion     Boolean @default(false)
-  aiTutorEnabled    Boolean @default(false)
-  emailNotifications Boolean @default(false)
+  id                  String  @id @default(cuid())
+  userId              String  @unique
+  theme               String  @default("dark")
+  reducedMotion       Boolean @default(false)
+  aiTutorEnabled      Boolean @default(false)
+  emailNotifications  Boolean @default(false)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -133,40 +133,40 @@ enum ContentStatus {
 }
 
 model World {
-  id        String        @id @default(cuid())
-  slug      String        @unique
-  title     String
-  summary   String?
-  order     Int           @default(0)
-  status    ContentStatus @default(DRAFT)
+  id       String        @id @default(cuid())
+  slug     String        @unique
+  title    String
+  summary  String?
+  order    Int           @default(0)
+  status   ContentStatus @default(DRAFT)
 
-  modules   Module[]
+  modules Module[]
 }
 
 model Module {
-  id        String        @id @default(cuid())
-  worldId   String
-  slug      String
-  title     String
-  summary   String?
-  order     Int           @default(0)
-  status    ContentStatus @default(DRAFT)
+  id       String        @id @default(cuid())
+  worldId  String
+  slug     String
+  title    String
+  summary  String?
+  order    Int           @default(0)
+  status   ContentStatus @default(DRAFT)
 
-  world     World   @relation(fields: [worldId], references: [id], onDelete: Cascade)
-  lessons   Lesson[]
+  world   World    @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
 
   @@unique([worldId, slug])
 }
 
 model Lesson {
-  id           String        @id @default(cuid())
-  moduleId     String
-  slug         String
-  title        String
-  order        Int           @default(0)
-  status       ContentStatus @default(DRAFT)
-  content      Json
-  version      Int           @default(1)
+  id        String        @id @default(cuid())
+  moduleId  String
+  slug      String
+  title     String
+  order     Int           @default(0)
+  status    ContentStatus @default(DRAFT)
+  content   Json
+  version   Int           @default(1)
 
   module          Module            @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   missions        Mission[]
@@ -177,19 +177,21 @@ model Lesson {
 }
 
 model Mission {
-  id             String        @id @default(cuid())
-  lessonId       String
-  slug           String
-  title          String
-  type           String
-  status         ContentStatus @default(DRAFT)
-  starterCode    String?
-  solutionCode   String?
-  explanation    String?
-  xpReward       Int           @default(10)
-  difficulty     Int           @default(1)
+  id            String        @id @default(cuid())
+  lessonId      String
+  slug          String
+  title         String
+  type          String
+  status        ContentStatus @default(DRAFT)
+  starterCode   String?
+  solutionCode  String?
+  explanation   String?
+  prompt        String?
+  options       Json?
+  xpReward      Int           @default(10)
+  difficulty    Int           @default(1)
 
-  lesson         Lesson            @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lesson         Lesson           @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   tests          MissionTest[]
   hints          MissionHint[]
   attempts       MissionAttempt[]
@@ -199,13 +201,15 @@ model Mission {
 }
 
 model MissionTest {
-  id         String  @id @default(cuid())
+  id         String   @id @default(cuid())
   missionId  String
-  isHidden   Boolean @default(false)
+  isHidden   Boolean  @default(false)
   input      Json?
   expected   Json?
 
   mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([missionId])
 }
 
 model MissionHint {
@@ -220,32 +224,32 @@ model MissionHint {
 }
 
 model Skill {
-  id            String @id @default(cuid())
-  slug          String @unique
-  name          String
-  description   String?
+  id           String  @id @default(cuid())
+  slug         String  @unique
+  name         String
+  description  String?
 
-  lessonSkills  LessonSkill[]
-  missionSkills MissionSkill[]
-  userSkills    UserSkill[]
+  lessonSkills   LessonSkill[]
+  missionSkills  MissionSkill[]
+  userSkills     UserSkill[]
 }
 
 model LessonSkill {
-  lessonId String
-  skillId  String
+  lessonId  String
+  skillId   String
 
-  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  skill  Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  lesson  Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@id([lessonId, skillId])
 }
 
 model MissionSkill {
-  missionId String
-  skillId   String
+  missionId  String
+  skillId    String
 
-  mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
-  skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  mission  Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  skill    Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@id([missionId, skillId])
 }
@@ -253,31 +257,31 @@ model MissionSkill {
 // ---------- Progress ----------
 
 model LessonProgress {
-  id          String    @id @default(cuid())
-  userId      String
-  lessonId    String
-  completedAt DateTime?
-  startedAt   DateTime  @default(now())
+  id            String     @id @default(cuid())
+  userId        String
+  lessonId      String
+  completedAt   DateTime?
+  startedAt     DateTime   @default(now())
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson  Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
 }
 
 model MissionAttempt {
-  id          String   @id @default(cuid())
-  userId      String
-  missionId   String
-  attemptNo   Int      @default(1)
-  hintLevel   Int      @default(0)
-  passed      Boolean  @default(false)
-  score       Int      @default(0)
-  xpAwarded   Int      @default(0)
-  submittedAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  userId        String
+  missionId     String
+  attemptNo     Int       @default(1)
+  hintLevel     Int       @default(0)
+  passed        Boolean   @default(false)
+  score         Int       @default(0)
+  xpAwarded     Int       @default(0)
+  submittedAt   DateTime  @default(now())
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission  Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
 }
 
 enum MasteryLevel {
@@ -291,46 +295,46 @@ enum MasteryLevel {
 }
 
 model UserSkill {
-  id          String       @id @default(cuid())
-  userId      String
-  skillId     String
-  masteryScore Int         @default(0)
-  masteryLevel MasteryLevel @default(NOT_STARTED)
-  updatedAt   DateTime     @updatedAt
+  id             String        @id @default(cuid())
+  userId         String
+  skillId        String
+  masteryScore   Int           @default(0)
+  masteryLevel   MasteryLevel  @default(NOT_STARTED)
+  updatedAt      DateTime      @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill  Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@unique([userId, skillId])
 }
 
 model Streak {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  currentStreak  Int      @default(0)
-  longestStreak  Int      @default(0)
-  lastActiveDate DateTime?
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  currentStreak    Int       @default(0)
+  longestStreak    Int       @default(0)
+  lastActiveDate   DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Achievement {
-  id          String @id @default(cuid())
-  slug        String @unique
-  title       String
-  description String?
+  id           String  @id @default(cuid())
+  slug         String  @unique
+  title        String
+  description  String?
 
   userAchievements UserAchievement[]
 }
 
 model UserAchievement {
-  id            String   @id @default(cuid())
-  userId        String
-  achievementId String
-  awardedAt     DateTime @default(now())
+  id             String    @id @default(cuid())
+  userId         String
+  achievementId  String
+  awardedAt      DateTime  @default(now())
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement  Achievement  @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
   @@unique([userId, achievementId])
 }
@@ -338,33 +342,33 @@ model UserAchievement {
 // ---------- Personal learning data ----------
 
 model Note {
-  id        String   @id @default(cuid())
-  userId    String
-  content   String
-  tags      String[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String    @id @default(cuid())
+  userId     String
+  content    String
+  tags       String[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Bookmark {
-  id        String   @id @default(cuid())
-  userId    String
-  targetType String
-  targetId   String
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  userId      String
+  targetType  String
+  targetId    String
+  createdAt   DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SavedCode {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String
-  code      String
-  language  String   @default("javascript")
-  createdAt DateTime @default(now())
+  id         String    @id @default(cuid())
+  userId     String
+  title      String
+  code       String
+  language   String    @default("javascript")
+  createdAt  DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -372,30 +376,30 @@ model SavedCode {
 // ---------- Communication and operations ----------
 
 model Notification {
-  id        String    @id @default(cuid())
-  userId    String
-  type      String
-  message   String
-  link      String?
-  readAt    DateTime?
-  createdAt DateTime  @default(now())
+  id         String    @id @default(cuid())
+  userId     String
+  type       String
+  message    String
+  link       String?
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  action    String
-  detail    Json?
-  createdAt DateTime @default(now())
+  id         String    @id @default(cuid())
+  userId     String?
+  action     String
+  detail     Json?
+  createdAt  DateTime  @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
 model FeatureFlag {
-  id        String  @id @default(cuid())
-  key       String  @unique
-  enabled   Boolean @default(false)
-  notes     String?
+  id       String   @id @default(cuid())
+  key      String   @unique
+  enabled  Boolean  @default(false)
+  notes    String?
 }
