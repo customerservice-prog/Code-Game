@@ -31,6 +31,7 @@ export default async function DashboardPage() {
     currentStreak: stats.currentStreak,
     longestStreak: stats.longestStreak,
     worldsCompleted,
+    completedMissions: stats.completedMissions,
   });
 
   return (
@@ -80,6 +81,15 @@ export default async function DashboardPage() {
             {stats.longestStreak} {stats.longestStreak === 1 ? "day" : "days"}
           </p>
         </div>
+        <div
+          className="rounded-lg bg-gradient-to-br from-panel to-background border border-primary p-4 min-w-[160px]"
+          style={{ boxShadow: "0 0 14px -4px var(--color-primary)" }}
+        >
+          <p className="text-sm text-text-muted">🎯 Missions solved</p>
+          <p className="text-2xl font-semibold mt-1 text-primary">
+            {stats.completedMissions}
+          </p>
+        </div>
       </div>
 
       <div className="border border-border rounded-md bg-panel p-4 mt-4 max-w-md">
@@ -119,9 +129,10 @@ export default async function DashboardPage() {
       </div>
 
       <p className="text-text-muted mt-6 text-sm max-w-2xl">
-        Achievements above are derived from your real lesson and streak
-        progress. Mission XP is not implemented yet, so the XP shown here
-        comes only from completed lessons.
+        Achievements and XP above are derived entirely from your real lesson
+        completions and graded mission attempts - solving a mission for the
+        first time awards XP and nudges the related skill&apos;s mastery
+        score forward.
       </p>
     </main>
   );
