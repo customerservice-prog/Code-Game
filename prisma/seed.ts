@@ -7,8 +7,9 @@ import { PrismaClient, ContentStatus } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // The full world list from CLAUDE.md section 11. "Web Foundations",
-// "HTML Harbor", and "CSS City" have real, launch-quality lessons so far -
-// every other world is intentionally left in DRAFT status with no modules,
+// "HTML Harbor", "CSS City", and "JavaScript Jungle" have real, launch-quality
+// lessons so far - every other world is intentionally left in DRAFT status
+// with no modules,
 // which the world map UI reads as "Upcoming" and excludes from completion
 // calculations (CLAUDE.md section 11 requires worlds without launch-quality
 // lessons to be labeled Upcoming, never presented as complete).
@@ -22,7 +23,7 @@ status: ContentStatus;
 { slug: "web-foundations", title: "Web Foundations", summary: "How the web actually works, before you write a line of code.", order: 1, status: ContentStatus.PUBLISHED },
 { slug: "html-harbor", title: "HTML Harbor", summary: "Structure content with HTML.", order: 2, status: ContentStatus.PUBLISHED },
 { slug: "css-city", title: "CSS City", summary: "Style and layout with CSS.", order: 3, status: ContentStatus.PUBLISHED },
-{ slug: "javascript-jungle", title: "JavaScript Jungle", summary: "Programming fundamentals with JavaScript.", order: 4, status: ContentStatus.DRAFT },
+{ slug: "javascript-jungle", title: "JavaScript Jungle", summary: "Programming fundamentals with JavaScript.", order: 4, status: ContentStatus.PUBLISHED },
 { slug: "typescript-tower", title: "TypeScript Tower", summary: "Add types to your JavaScript.", order: 5, status: ContentStatus.DRAFT },
 { slug: "react-realm", title: "React Realm", summary: "Build interactive UIs with React.", order: 6, status: ContentStatus.DRAFT },
 { slug: "nextjs-network", title: "Next.js Network", summary: "Full-stack React with Next.js.", order: 7, status: ContentStatus.DRAFT },
@@ -933,7 +934,306 @@ update: {},
 create: { missionId: cssMission4.id, skillId: skillFlexboxLayout.id },
 });
 
-console.log("Seed complete: worlds, Web Foundations (2 modules, 4 lessons, 4 missions), HTML Harbor (2 modules, 4 lessons, 4 missions), and CSS City (2 modules, 4 lessons, 4 missions) upserted.");
+// ---------- World 4: JavaScript Jungle ----------
+const javascriptJungle = await prisma.world.findUniqueOrThrow({ where: { slug: "javascript-jungle" } });
+
+const jsBasics = await prisma.module.upsert({
+where: { worldId_slug: { worldId: javascriptJungle.id, slug: "js-basics" } },
+update: { title: "JS Basics", summary: "Variables, values, and operators.", order: 1, status: ContentStatus.PUBLISHED },
+create: { worldId: javascriptJungle.id, slug: "js-basics", title: "JS Basics", summary: "Variables, values, and operators.", order: 1, status: ContentStatus.PUBLISHED },
+});
+
+const skillVariables = await prisma.skill.upsert({
+where: { slug: "variables-and-values" },
+update: { name: "Variables and values", description: "Declaring, naming, and reassigning variables to store values." },
+create: { slug: "variables-and-values", name: "Variables and values", description: "Declaring, naming, and reassigning variables to store values." },
+});
+
+const skillOperators = await prisma.skill.upsert({
+where: { slug: "operators-and-expressions" },
+update: { name: "Operators and expressions", description: "Using arithmetic and comparison operators to produce new values." },
+create: { slug: "operators-and-expressions", name: "Operators and expressions", description: "Using arithmetic and comparison operators to produce new values." },
+});
+
+// ---------- Lesson 1 (JavaScript Jungle) ----------
+const jsLesson1Content = [
+{ type: "heading", text: "Variables and Values" },
+{ type: "paragraph", text: "A variable is a named container for a value your program needs to remember and reuse. JavaScript uses variables to store everything from a user's name to the result of a calculation." },
+{ type: "vocabulary", term: "Variable", definition: "A named container that stores a value your program can read and change later." },
+{ type: "vocabulary", term: "Value", definition: "The actual piece of data stored in a variable, such as a number, string, or boolean." },
+{ type: "analogy", text: "A variable is like a labeled box: the label (variable name) stays the same, but you can open the box and replace what's inside (the value) at any time." },
+{ type: "code_example", language: "javascript", code: "let score = 0;\nscore = score + 10;\nconst playerName = \"Ada\";" },
+{ type: "line_explanation", lines: [
+{ line: "let score = 0;", explanation: "Declares a variable named score and sets its initial value to 0." },
+{ line: "score = score + 10;", explanation: "Reassigns score to its current value plus 10, since let variables can change." },
+{ line: "const playerName = \"Ada\";", explanation: "Declares a constant that cannot be reassigned after this line." },
+] },
+{ type: "callout", tone: "info", text: "Use const by default, and only use let when you know a variable's value will need to change later." },
+{ type: "common_mistake", text: "Beginners often try to reassign a const variable, which throws an error. If a value needs to change, declare it with let instead." },
+{ type: "knowledge_check", question: "What is the difference between let and const in JavaScript?", options: [
+"There is no difference",
+"let can be reassigned, const cannot",
+"const can be reassigned, let cannot",
+"Both must be reassigned"
+], correctIndex: 1 },
+{ type: "summary", text: "Variables store values under a name you choose. Use const for values that won't change and let for values that will." },
+];
+
+const jsLesson1 = await prisma.lesson.upsert({
+where: { moduleId_slug: { moduleId: jsBasics.id, slug: "variables-and-values" } },
+update: { title: "Variables and Values", order: 1, status: ContentStatus.PUBLISHED, content: jsLesson1Content },
+create: { moduleId: jsBasics.id, slug: "variables-and-values", title: "Variables and Values", order: 1, status: ContentStatus.PUBLISHED, content: jsLesson1Content },
+});
+
+await prisma.lessonSkill.upsert({
+where: { lessonId_skillId: { lessonId: jsLesson1.id, skillId: skillVariables.id } },
+update: {},
+create: { lessonId: jsLesson1.id, skillId: skillVariables.id },
+});
+
+const jsMission1 = await prisma.mission.upsert({
+where: { lessonId_slug: { lessonId: jsLesson1.id, slug: "predict-the-score" } },
+update: {
+title: "Predict the Score",
+type: "predict_output",
+status: ContentStatus.PUBLISHED,
+starterCode: "let score = 5;\nscore = score + 3;\nconsole.log(score);",
+explanation: "score starts at 5, then is reassigned to 5 + 3, so console.log prints 8.",
+xpReward: 10,
+difficulty: 1,
+},
+create: {
+lessonId: jsLesson1.id,
+slug: "predict-the-score",
+title: "Predict the Score",
+type: "predict_output",
+status: ContentStatus.PUBLISHED,
+starterCode: "let score = 5;\nscore = score + 3;\nconsole.log(score);",
+explanation: "score starts at 5, then is reassigned to 5 + 3, so console.log prints 8.",
+xpReward: 10,
+difficulty: 1,
+},
+});
+
+await prisma.missionSkill.upsert({
+where: { missionId_skillId: { missionId: jsMission1.id, skillId: skillVariables.id } },
+update: {},
+create: { missionId: jsMission1.id, skillId: skillVariables.id },
+});
+// ---------- Lesson 2 (JavaScript Jungle) ----------
+const jsLesson2Content = [
+{ type: "heading", text: "Operators and Expressions" },
+{ type: "paragraph", text: "Operators combine values to produce new values. JavaScript has arithmetic operators for math, comparison operators for checking relationships, and more." },
+{ type: "vocabulary", term: "Operator", definition: "A symbol like + or === that performs an operation on one or more values." },
+{ type: "vocabulary", term: "Expression", definition: "Any piece of code that produces a value, such as 2 + 2 or score > 10." },
+{ type: "analogy", text: "Operators are like verbs in a sentence: they take the nouns (values) around them and produce a new outcome, the same way \"add\" combines two numbers into a sum." },
+{ type: "code_example", language: "javascript", code: "let total = 4 + 5;\nlet isHighScore = total > 8;\nlet isEqual = total === 9;" },
+{ type: "line_explanation", lines: [
+{ line: "let total = 4 + 5;", explanation: "The + operator adds two numbers, so total becomes 9." },
+{ line: "let isHighScore = total > 8;", explanation: "The > operator compares two values and produces a boolean, here true." },
+{ line: "let isEqual = total === 9;", explanation: "The === operator checks strict equality, comparing both value and type." },
+] },
+{ type: "callout", tone: "warning", text: "Always use === instead of == in JavaScript - == converts types before comparing, which can produce surprising results." },
+{ type: "common_mistake", text: "Beginners often confuse the assignment operator = with the equality operator ===. \"=\" stores a value; \"===\" compares two values." },
+{ type: "knowledge_check", question: "What does the === operator do?", options: [
+"Assigns a value to a variable",
+"Checks strict equality between two values",
+"Adds two numbers together",
+"Declares a new variable"
+], correctIndex: 1 },
+{ type: "summary", text: "Operators combine values into new results. Arithmetic operators do math, and comparison operators like === produce booleans used to make decisions." },
+];
+
+const jsLesson2 = await prisma.lesson.upsert({
+where: { moduleId_slug: { moduleId: jsBasics.id, slug: "operators-and-expressions" } },
+update: { title: "Operators and Expressions", order: 2, status: ContentStatus.PUBLISHED, content: jsLesson2Content },
+create: { moduleId: jsBasics.id, slug: "operators-and-expressions", title: "Operators and Expressions", order: 2, status: ContentStatus.PUBLISHED, content: jsLesson2Content },
+});
+
+await prisma.lessonSkill.upsert({
+where: { lessonId_skillId: { lessonId: jsLesson2.id, skillId: skillOperators.id } },
+update: {},
+create: { lessonId: jsLesson2.id, skillId: skillOperators.id },
+});
+
+const jsMission2 = await prisma.mission.upsert({
+where: { lessonId_slug: { lessonId: jsLesson2.id, slug: "identify-the-operator" } },
+update: {
+title: "Identify the Operator",
+type: "multiple_choice",
+status: ContentStatus.PUBLISHED,
+explanation: "\"===\" is the strict equality operator, checking that two values are equal without converting their types.",
+xpReward: 10,
+difficulty: 1,
+},
+create: {
+lessonId: jsLesson2.id,
+slug: "identify-the-operator",
+title: "Identify the Operator",
+type: "multiple_choice",
+status: ContentStatus.PUBLISHED,
+explanation: "\"===\" is the strict equality operator, checking that two values are equal without converting their types.",
+xpReward: 10,
+difficulty: 1,
+},
+});
+
+await prisma.missionSkill.upsert({
+where: { missionId_skillId: { missionId: jsMission2.id, skillId: skillOperators.id } },
+update: {},
+create: { missionId: jsMission2.id, skillId: skillOperators.id },
+});
+
+// ---------- Module 2 (JavaScript Jungle): Control Flow ----------
+const controlFlow = await prisma.module.upsert({
+where: { worldId_slug: { worldId: javascriptJungle.id, slug: "control-flow" } },
+update: { title: "Control Flow", summary: "Make decisions and repeat actions in code.", order: 2, status: ContentStatus.PUBLISHED },
+create: { worldId: javascriptJungle.id, slug: "control-flow", title: "Control Flow", summary: "Make decisions and repeat actions in code.", order: 2, status: ContentStatus.PUBLISHED },
+});
+
+const skillConditionals = await prisma.skill.upsert({
+where: { slug: "conditionals" },
+update: { name: "Conditionals", description: "Branching program flow with if, else, and comparisons." },
+create: { slug: "conditionals", name: "Conditionals", description: "Branching program flow with if, else, and comparisons." },
+});
+
+const skillLoops = await prisma.skill.upsert({
+where: { slug: "loops" },
+update: { name: "Loops", description: "Repeating code with for and while loops." },
+create: { slug: "loops", name: "Loops", description: "Repeating code with for and while loops." },
+});
+// ---------- Lesson 3 (JavaScript Jungle) ----------
+const jsLesson3Content = [
+{ type: "heading", text: "Making Decisions with If Statements" },
+{ type: "paragraph", text: "Programs need to make decisions: run one block of code if something is true, and a different block otherwise. The if statement is the primary tool JavaScript gives you to do this." },
+{ type: "vocabulary", term: "Conditional", definition: "A statement that runs different code depending on whether a condition is true or false." },
+{ type: "vocabulary", term: "Boolean", definition: "A value that is either true or false, often produced by comparison operators." },
+{ type: "analogy", text: "An if statement is like a fork in a hiking trail with a sign: if the sign's condition matches your situation, you take that path; otherwise, you continue on the other one." },
+{ type: "code_example", language: "javascript", code: "let score = 85;\nif (score >= 60) {\n console.log(\"Pass\");\n} else {\n console.log(\"Fail\");\n}" },
+{ type: "line_explanation", lines: [
+{ line: "if (score >= 60) {", explanation: "Checks whether score is greater than or equal to 60." },
+{ line: "console.log(\"Pass\");", explanation: "Runs only when the condition above is true." },
+{ line: "} else {", explanation: "Marks the block that runs when the condition is false instead." },
+] },
+{ type: "callout", tone: "info", text: "The condition inside an if statement's parentheses must evaluate to true or false - comparison operators are what usually produce that boolean." },
+{ type: "common_mistake", text: "Beginners sometimes write if (score = 60) with a single equals sign, which assigns 60 to score instead of comparing - always use === for comparisons." },
+{ type: "knowledge_check", question: "When does the code inside an else block run?", options: [
+"Always, right after the if block",
+"Only when the if condition is true",
+"Only when the if condition is false",
+"Never, it is just a comment"
+], correctIndex: 2 },
+{ type: "summary", text: "If statements let a program branch based on a condition. Pairing if with else covers both the true and false cases." },
+];
+
+const jsLesson3 = await prisma.lesson.upsert({
+where: { moduleId_slug: { moduleId: controlFlow.id, slug: "if-statements-and-comparisons" } },
+update: { title: "If Statements and Comparisons", order: 1, status: ContentStatus.PUBLISHED, content: jsLesson3Content },
+create: { moduleId: controlFlow.id, slug: "if-statements-and-comparisons", title: "If Statements and Comparisons", order: 1, status: ContentStatus.PUBLISHED, content: jsLesson3Content },
+});
+
+await prisma.lessonSkill.upsert({
+where: { lessonId_skillId: { lessonId: jsLesson3.id, skillId: skillConditionals.id } },
+update: {},
+create: { lessonId: jsLesson3.id, skillId: skillConditionals.id },
+});
+
+const jsMission3 = await prisma.mission.upsert({
+where: { lessonId_slug: { lessonId: jsLesson3.id, slug: "predict-the-branch" } },
+update: {
+title: "Predict the Branch",
+type: "predict_output",
+status: ContentStatus.PUBLISHED,
+starterCode: "let temperature = 40;\nif (temperature > 90) {\n console.log(\"Hot\");\n} else {\n console.log(\"Not hot\");\n}",
+explanation: "temperature (40) is not greater than 90, so the condition is false and the else branch runs, printing \"Not hot\".",
+xpReward: 10,
+difficulty: 2,
+},
+create: {
+lessonId: jsLesson3.id,
+slug: "predict-the-branch",
+title: "Predict the Branch",
+type: "predict_output",
+status: ContentStatus.PUBLISHED,
+starterCode: "let temperature = 40;\nif (temperature > 90) {\n console.log(\"Hot\");\n} else {\n console.log(\"Not hot\");\n}",
+explanation: "temperature (40) is not greater than 90, so the condition is false and the else branch runs, printing \"Not hot\".",
+xpReward: 10,
+difficulty: 2,
+},
+});
+
+await prisma.missionSkill.upsert({
+where: { missionId_skillId: { missionId: jsMission3.id, skillId: skillConditionals.id } },
+update: {},
+create: { missionId: jsMission3.id, skillId: skillConditionals.id },
+});
+// ---------- Lesson 4 (JavaScript Jungle) ----------
+const jsLesson4Content = [
+{ type: "heading", text: "Repeating Actions with Loops" },
+{ type: "paragraph", text: "Loops let a program repeat a block of code multiple times without writing it out by hand. The for loop is one of the most common ways to repeat an action a specific number of times." },
+{ type: "vocabulary", term: "Loop", definition: "A structure that repeats a block of code while a condition remains true." },
+{ type: "vocabulary", term: "Iteration", definition: "A single pass through the body of a loop." },
+{ type: "analogy", text: "A for loop is like giving someone instructions to \"knock on this door 5 times\" instead of separately saying \"knock\" five times in a row." },
+{ type: "code_example", language: "javascript", code: "for (let i = 0; i < 3; i++) {\n console.log(i);\n}" },
+{ type: "line_explanation", lines: [
+{ line: "for (let i = 0; i < 3; i++) {", explanation: "Starts i at 0, repeats while i is less than 3, and increases i by 1 after each pass." },
+{ line: "console.log(i);", explanation: "Runs once per iteration, printing the current value of i." },
+{ line: "}", explanation: "Marks the end of the loop's body." },
+] },
+{ type: "callout", tone: "warning", text: "Forgetting to update the loop's counter (like i++) creates an infinite loop, since the condition never becomes false." },
+{ type: "common_mistake", text: "Beginners often write the wrong comparison, such as i <= 3 when they meant i < 3, causing one extra iteration than intended." },
+{ type: "knowledge_check", question: "In \"for (let i = 0; i < 3; i++)\", how many times does the loop body run?", options: [
+"2 times",
+"3 times",
+"4 times",
+"Infinitely"
+], correctIndex: 1 },
+{ type: "summary", text: "Loops repeat a block of code while a condition holds true. The for loop's three parts control where it starts, when it stops, and how it advances." },
+];
+
+const jsLesson4 = await prisma.lesson.upsert({
+where: { moduleId_slug: { moduleId: controlFlow.id, slug: "loops" } },
+update: { title: "Loops", order: 2, status: ContentStatus.PUBLISHED, content: jsLesson4Content },
+create: { moduleId: controlFlow.id, slug: "loops", title: "Loops", order: 2, status: ContentStatus.PUBLISHED, content: jsLesson4Content },
+});
+
+await prisma.lessonSkill.upsert({
+where: { lessonId_skillId: { lessonId: jsLesson4.id, skillId: skillLoops.id } },
+update: {},
+create: { lessonId: jsLesson4.id, skillId: skillLoops.id },
+});
+
+const jsMission4 = await prisma.mission.upsert({
+where: { lessonId_slug: { lessonId: jsLesson4.id, slug: "fix-the-infinite-loop" } },
+update: {
+title: "Fix the Infinite Loop",
+type: "debug_challenge",
+status: ContentStatus.PUBLISHED,
+starterCode: "let i = 0;\nwhile (i < 5) {\n console.log(i);\n}",
+explanation: "The loop never updates i, so the condition i < 5 stays true forever. Adding i++; inside the loop body fixes the infinite loop.",
+xpReward: 10,
+difficulty: 2,
+},
+create: {
+lessonId: jsLesson4.id,
+slug: "fix-the-infinite-loop",
+title: "Fix the Infinite Loop",
+type: "debug_challenge",
+status: ContentStatus.PUBLISHED,
+starterCode: "let i = 0;\nwhile (i < 5) {\n console.log(i);\n}",
+explanation: "The loop never updates i, so the condition i < 5 stays true forever. Adding i++; inside the loop body fixes the infinite loop.",
+xpReward: 10,
+difficulty: 2,
+},
+});
+
+await prisma.missionSkill.upsert({
+where: { missionId_skillId: { missionId: jsMission4.id, skillId: skillLoops.id } },
+update: {},
+create: { missionId: jsMission4.id, skillId: skillLoops.id },
+});
+
+console.log("Seed complete: worlds, Web Foundations (2 modules, 4 lessons, 4 missions), HTML Harbor (2 modules, 4 lessons, 4 missions), CSS City (2 modules, 4 lessons, 4 missions), and JavaScript Jungle (2 modules, 4 lessons, 4 missions) upserted.");
 }
 
 main()
