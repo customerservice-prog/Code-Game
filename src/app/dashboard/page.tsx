@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { getWorldsWithProgress } from "@/lib/curriculum";
+import { getUserGameStats } from "@/lib/gamification";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -11,7 +12,10 @@ export default async function DashboardPage() {
     redirect("/sign-in");
   }
 
-  const worlds = await getWorldsWithProgress(session.user.id);
+  const [worlds, stats] = await Promise.all([
+    getWorldsWithProgress(session.user.id),
+    getUserGameStats(session.user.id),
+  ]);
   const activeWorlds = worlds.filter((w) => !w.isUpcoming);
   const totalLessons = activeWorlds.reduce((sum, w) => sum + w.totalLessons, 0);
   const completedLessons = activeWorlds.reduce(
@@ -24,7 +28,26 @@ export default async function DashboardPage() {
       <h1 className="text-2xl font-semibold">Dashboard</h1>
       <p className="text-text-muted mt-2">Signed in as {session.user.email}.</p>
 
-      <div className="border border-border rounded-md bg-panel p-4 mt-6 max-w-md">
+      <div className="flex flex-wrap gap-4 mt-6">
+        <div className="border border-border rounded-lg bg-panel p-4 min-w-[160px]">
+          <p className="text-sm text-text-muted">⚡ Total XP</p>
+          <p className="text-2xl font-semibold mt-1">{stats.totalXp}</p>
+        </div>
+        <div className="border border-border rounded-lg bg-panel p-4 min-w-[160px]">
+          <p className="text-sm text-text-muted">🔥 Current streak</p>
+          <p className="text-2xl font-semibold mt-1">
+            {stats.currentStreak} {stats.currentStreak === 1 ? "day" : "days"}
+          </p>
+        </div>
+        <div className="border border-border rounded-lg bg-panel p-4 min-w-[160px]">
+          <p className="text-sm text-text-muted">🏆 Longest streak</p>
+          <p className="text-2xl font-semibold mt-1">
+            {stats.longestStreak} {stats.longestStreak === 1 ? "day" : "days"}
+          </p>
+        </div>
+      </div>
+
+      <div className="border border-border rounded-md bg-panel p-4 mt-4 max-w-md">
         <p className="text-sm text-text-muted">Lesson progress</p>
         <p className="text-xl font-medium mt-1">
           {completedLessons} / {totalLessons} lessons complete
@@ -38,8 +61,9 @@ export default async function DashboardPage() {
       </div>
 
       <p className="text-text-muted mt-6 text-sm max-w-2xl">
-        Streak, XP, and recommended-next-lesson widgets are not implemented
-        yet - only real lesson progress is shown above.
+        Achievements and mission XP are not implemented yet - the XP above is
+        earned only from completed lessons, and streaks count consecutive
+        calendar days with at least one lesson completed.
       </p>
     </main>
   );
