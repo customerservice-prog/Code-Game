@@ -7,11 +7,12 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 ### Title: Curriculum content volume is far below the launch minimum
 - Severity: Medium
 - Area: Curriculum
-- Description: Only 1 of 17 worlds (Web Foundations) has real published content: 2 modules, 4 lessons, 4 missions. CLAUDE.md section 12 requires at least 30 lessons and 100 missions at launch.
-- Impact: The product is not launch-ready from a content perspective, even though the underlying engine (data model, seed pipeline, renderer, progress tracking) is real and working.
-- Workaround: The other 16 worlds are correctly marked "Upcoming" in the UI rather than shown as empty/broken, per CLAUDE.md section 11.
+- Description: 2 of 17 worlds (Web Foundations and HTML Harbor) now have real published content: 4 modules, 8 lessons, 8 missions total. CLAUDE.md section 12 requires at least 30 lessons and 100 missions at launch.
+- Impact: The product is not launch-ready from a content perspective, even though the underlying engine (data model, seed pipeline, renderer, progress tracking) is real and working, and now proven to extend cleanly to a second world.
+- Workaround: The other 15 worlds are correctly marked "Upcoming" in the UI rather than shown as empty/broken, per CLAUDE.md section 11.
 - Status: Open
 - Date Logged: 2026-07-29
+- Date Updated: 2026-07-30 (HTML Harbor published, raising real content from 1 to 2 worlds and from 4 to 8 lessons/missions)
 
 ### Title: Missions are preview-only - no submission or grading yet
 - Severity: Medium
@@ -56,7 +57,7 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 - Area: Learning progress
 - Description: The Achievement/UserAchievement tables existed in the schema but nothing wrote to them or showed real earned/locked state anywhere in the UI.
 - Impact: Learners had no way to see recognition for real milestones beyond raw XP/streak numbers.
-- Workaround/Fix: Added a getAchievements helper in src/lib/gamification.ts that derives five real achievements (First Steps, Getting Serious, Streak Starter, Streak Keeper, World Graduate) entirely from existing real data (completed-lesson count, current/longest streak, and per-world completion), with no new database writes needed. Rendered as an Earned/Locked grid on the dashboard. Verified live: completing the final lesson in Web Foundations flipped "World Graduate" from Locked to Earned in production.
+- Workaround/Fix: Added a getAchievements helper in src/lib/gamification.ts that derives five real achievements (First Steps, Getting Serious, Streak Starter, Streak Keeper, World Graduate) entirely from existing real data (completed-lesson count, current/longest streak, and per-world completion), with no new database writes needed. Rendered as an Earned/Locked grid on the dashboard. Verified live: completing the final lesson in Web Foundations flipped "World Graduate" from Locked to Earned in production, and later completing the first HTML Harbor lesson flipped "Getting Serious" from Locked to Earned once total completed lessons reached 5.
 - Status: Resolved
 - Date Logged: 2026-07-30
 - Date Resolved: 2026-07-30
@@ -76,7 +77,7 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 - Area: Documentation / tooling process
 - Description: A prior commit titled "Update PROJECT_STATUS.md" was made via the GitHub web editor's clipboard-paste workflow, but the paste did not actually change any text before committing, resulting in a real commit with 0 files changed. This left the document stale, still describing the curriculum engine as not started even after it had been built and verified live.
 - Impact: The tracking document did not reflect real, verified project state, which could have misled anyone reading it about progress.
-- Workaround/Fix: Discovered by checking the commit diff directly (GitHub showed "0 file changed" for that commit) rather than trusting the commit list alone. Rewrote PROJECT_STATUS.md with accurate current state and verified the new commit actually contains a real diff before moving on. Going forward, each editor paste is verified with a screenshot of both the start and end of the file before committing. (This same class of paste-silently-not-applying bug recurred several more times during later gamification/achievements work and was caught every time using the same verification habit - always check the actual rendered content or the commit's file diff, never assume a click-through succeeded.)
+- Workaround/Fix: Discovered by checking the commit diff directly (GitHub showed "0 file changed" for that commit) rather than trusting the commit list alone. Rewrote PROJECT_STATUS.md with accurate current state and verified the new commit actually contains a real diff before moving on. Going forward, each editor paste is verified either by checking the "Commit changes" button's disabled state via a direct DOM query, or by reading the actual rendered file content, before committing. (This same class of paste-silently-not-applying bug recurred several more times during later gamification/achievements work and again during this HTML Harbor content push - every time it was caught using the same verification habit: never assume a click-through succeeded, always confirm the actual content changed or the commit button became enabled first.)
 - Status: Resolved
 - Date Logged: 2026-07-29
 - Date Resolved: 2026-07-29
