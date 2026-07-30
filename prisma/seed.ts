@@ -2,7 +2,7 @@
 // Runs on every deploy start (see package.json's start script) so the
 // database always reflects the worlds/modules/lessons/missions defined
 // here. Safe to re-run: every write is an upsert keyed on a stable slug.
-import { PrismaClient, ContentStatus } from "@prisma/client";
+import { PrismaClient, ContentStatus, Prisma } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -1238,7 +1238,7 @@ create: { missionId: jsMission4.id, skillId: skillLoops.id },
 type MissionMeta = {
   prompt: string;
   options?: string[];
-  test: Record<string, unknown>;
+    test: Prisma.InputJsonValue;
 };
 
 const MISSION_META: Record<string, MissionMeta> = {
