@@ -65,7 +65,11 @@ export async function getWorldBySlug(slug: string, userId: string) {
   });
 }
 
-export async function getLessonBySlug(worldSlug: string, lessonSlug: string) {
+export async function getLessonBySlug(
+  worldSlug: string,
+  lessonSlug: string,
+  userId: string
+) {
   return prisma.lesson.findFirst({
     where: {
       slug: lessonSlug,
@@ -77,6 +81,11 @@ export async function getLessonBySlug(worldSlug: string, lessonSlug: string) {
       missions: {
         where: { status: ContentStatus.PUBLISHED },
         orderBy: { difficulty: "asc" },
+        include: {
+          // Only need to know *whether* this user has ever passed each
+          // mission, so a single matching row (if any) is enough.
+          attempts: { where: { userId, passed: true }, take: 1 },
+        },
       },
     },
   });
