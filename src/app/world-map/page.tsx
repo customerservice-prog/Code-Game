@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { getWorldsWithProgress } from "@/lib/curriculum";
+import { getWorldVisual } from "@/lib/world-visuals";
 
 export default async function WorldMapPage() {
   const session = await getServerSession(authOptions);
@@ -22,38 +23,61 @@ export default async function WorldMapPage() {
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-        {worlds.map((world) => (
-          <div
-            key={world.id}
-            className="border border-border rounded-md bg-panel p-4 flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between">
-                <h2 className="font-medium">{world.title}</h2>
-                {world.isUpcoming && (
-                  <span className="text-xs uppercase tracking-wide text-text-muted border border-border rounded-sm px-2 py-0.5">
-                    Upcoming
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-text-muted mt-1">{world.summary}</p>
-            </div>
+        {worlds.map((world) => {
+          const visual = getWorldVisual(world.slug);
+          const pct =
+            world.totalLessons > 0
+              ? Math.round((world.completedLessons / world.totalLessons) * 100)
+              : 0;
 
-            {!world.isUpcoming && (
-              <div className="mt-4">
-                <p className="text-xs text-text-muted mb-2">
-                  {world.completedLessons} / {world.totalLessons} lessons complete
-                </p>
-                <Link
-                  href={`/world-map/${world.slug}`}
-                  className="inline-block text-sm text-primary hover:underline"
-                >
-                  Enter world →
-                </Link>
+          return (
+            <div
+              key={world.id}
+              className={`rounded-lg bg-panel p-4 flex flex-col justify-between border border-border border-t-4 transition-transform duration-motion ${
+                world.isUpcoming ? "opacity-60" : "hover:-translate-y-1 hover:shadow-lg"
+              }`}
+              style={{ borderTopColor: visual.accent }}
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl leading-none" aria-hidden="true">
+                      {visual.icon}
+                    </span>
+                    <h2 className="font-medium">{world.title}</h2>
+                  </div>
+                  {world.isUpcoming && (
+                    <span className="text-xs uppercase tracking-wide text-text-muted border border-border rounded-sm px-2 py-0.5 whitespace-nowrap">
+                      🔒 Upcoming
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-text-muted mt-1">{world.summary}</p>
               </div>
-            )}
-          </div>
-        ))}
+
+              {!world.isUpcoming && (
+                <div className="mt-4">
+                  <div className="h-2 rounded-full bg-border overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-success transition-all duration-motion"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-text-muted mt-2">
+                    {world.completedLessons} / {world.totalLessons} lessons complete
+                    {pct === 100 ? " 🎉" : ""}
+                  </p>
+                  <Link
+                    href={`/world-map/${world.slug}`}
+                    className="inline-block text-sm text-primary hover:underline mt-1"
+                  >
+                    Enter world →
+                  </Link>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </main>
   );
