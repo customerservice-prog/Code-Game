@@ -74,7 +74,7 @@ async function main() {
     { type: "vocabulary", term: "Client", definition: "The program requesting information - usually your web browser." },
     { type: "vocabulary", term: "Server", definition: "A computer that stores files and data, and responds to requests from clients." },
     { type: "analogy", text: "Think of a restaurant: you (the client) place an order with a waiter, the kitchen (the server) prepares it, and the waiter brings back your food (the response)." },
-    { type: "code_example", language: "text", code: "Browser  --- GET /  --->  Server\nBrowser  <--- HTML ---   Server" },
+    { type: "code_example", language: "text", code: "Browser --- GET / ---> Server\nBrowser <--- HTML --- Server" },
     { type: "line_explanation", lines: [
       { line: "Browser --- GET / ---> Server", explanation: "Your browser sends an HTTP GET request asking for the homepage." },
       { line: "Browser <--- HTML --- Server", explanation: "The server responds with HTML the browser can render into a page." },
@@ -196,7 +196,156 @@ async function main() {
     create: { missionId: mission2.id, skillId: skillFilesFolders.id },
   });
 
-  console.log("Seed complete: worlds, Web Foundations module, 2 lessons, 2 missions upserted.");
+  // ---------- Module 2: Developer Toolkit ----------
+  const developerToolkit = await prisma.module.upsert({
+    where: { worldId_slug: { worldId: webFoundations.id, slug: "developer-toolkit" } },
+    update: { title: "Developer Toolkit", summary: "The everyday tools professional developers use to write and run code.", order: 2, status: ContentStatus.PUBLISHED },
+    create: { worldId: webFoundations.id, slug: "developer-toolkit", title: "Developer Toolkit", summary: "The everyday tools professional developers use to write and run code.", order: 2, status: ContentStatus.PUBLISHED },
+  });
+
+  const skillTerminalBasics = await prisma.skill.upsert({
+    where: { slug: "terminal-basics" },
+    update: { name: "Terminal basics", description: "Understanding what a terminal is and why developers use it." },
+    create: { slug: "terminal-basics", name: "Terminal basics", description: "Understanding what a terminal is and why developers use it." },
+  });
+
+  const skillFilePaths = await prisma.skill.upsert({
+    where: { slug: "file-paths" },
+    update: { name: "Reading file paths", description: "Reading and reasoning about relative and absolute file paths." },
+    create: { slug: "file-paths", name: "Reading file paths", description: "Reading and reasoning about relative and absolute file paths." },
+  });
+
+  // ---------- Lesson 3 ----------
+  const lesson3Content = [
+    { type: "heading", text: "What Is a Terminal?" },
+    { type: "paragraph", text: "A terminal is a text-based way to give your computer instructions directly, instead of clicking through menus and folders. Professional developers use it constantly to run programs, install tools, and manage projects." },
+    { type: "vocabulary", term: "Terminal", definition: "A program that lets you type text commands for your computer to execute." },
+    { type: "vocabulary", term: "Command", definition: "A single instruction typed into a terminal, such as asking to list files." },
+    { type: "analogy", text: "If clicking through folders in a file explorer is like walking through a building room by room, a terminal is like radioing ahead and asking someone to bring you exactly what you need." },
+    { type: "code_example", language: "bash", code: "ls\ncd src\nnode --version" },
+    { type: "line_explanation", lines: [
+      { line: "ls", explanation: "Lists the files and folders in the current location." },
+      { line: "cd src", explanation: "Changes into the \"src\" folder so following commands run from there." },
+      { line: "node --version", explanation: "Asks the installed Node.js program to report which version is installed." },
+    ] },
+    { type: "callout", tone: "info", text: "Every deployment of this exact application runs terminal commands behind the scenes, such as installing dependencies and starting the server." },
+    { type: "common_mistake", text: "Beginners often fear the terminal because a mistyped command looks scary. In reality, most commands are safe to try, and reading the output carefully is the fastest way to learn what went wrong." },
+    { type: "knowledge_check", question: "What is the main purpose of a terminal?", options: [
+      "To browse the internet visually",
+      "To type text commands that instruct the computer directly",
+      "To replace all file explorers permanently",
+      "It is only used for playing games"
+    ], correctIndex: 1 },
+    { type: "summary", text: "A terminal lets you type direct instructions to your computer. It looks intimidating at first, but it is just another way of telling a computer what to do." },
+  ];
+
+  const lesson3 = await prisma.lesson.upsert({
+    where: { moduleId_slug: { moduleId: developerToolkit.id, slug: "what-is-a-terminal" } },
+    update: { title: "What Is a Terminal?", order: 1, status: ContentStatus.PUBLISHED, content: lesson3Content },
+    create: { moduleId: developerToolkit.id, slug: "what-is-a-terminal", title: "What Is a Terminal?", order: 1, status: ContentStatus.PUBLISHED, content: lesson3Content },
+  });
+
+  await prisma.lessonSkill.upsert({
+    where: { lessonId_skillId: { lessonId: lesson3.id, skillId: skillTerminalBasics.id } },
+    update: {},
+    create: { lessonId: lesson3.id, skillId: skillTerminalBasics.id },
+  });
+
+  const mission3 = await prisma.mission.upsert({
+    where: { lessonId_slug: { lessonId: lesson3.id, slug: "choose-the-right-command" } },
+    update: {
+      title: "Choose the Right Command",
+      type: "multiple_choice",
+      status: ContentStatus.PUBLISHED,
+      explanation: "\"cd\" (change directory) is the command used to move into a different folder from the terminal.",
+      xpReward: 10,
+      difficulty: 1,
+    },
+    create: {
+      lessonId: lesson3.id,
+      slug: "choose-the-right-command",
+      title: "Choose the Right Command",
+      type: "multiple_choice",
+      status: ContentStatus.PUBLISHED,
+      explanation: "\"cd\" (change directory) is the command used to move into a different folder from the terminal.",
+      xpReward: 10,
+      difficulty: 1,
+    },
+  });
+
+  await prisma.missionSkill.upsert({
+    where: { missionId_skillId: { missionId: mission3.id, skillId: skillTerminalBasics.id } },
+    update: {},
+    create: { missionId: mission3.id, skillId: skillTerminalBasics.id },
+  });
+
+  // ---------- Lesson 4 ----------
+  const lesson4Content = [
+    { type: "heading", text: "Reading a File Path" },
+    { type: "paragraph", text: "A file path tells you exactly where a file lives inside a project, the same way a mailing address tells a courier exactly where to deliver a package." },
+    { type: "vocabulary", term: "Absolute path", definition: "A path that starts from the very top of the file system, so it always points to the same location no matter where you currently are." },
+    { type: "vocabulary", term: "Relative path", definition: "A path written relative to your current location, such as referring to a file in the current folder or one folder up." },
+    { type: "analogy", text: "An absolute path is like giving someone your full home address. A relative path is like saying \"two doors down from where you're standing\" - it only makes sense if you know the starting point." },
+    { type: "code_example", language: "text", code: "src/app/dashboard/page.tsx\n../lib/auth.ts\n./page.tsx" },
+    { type: "line_explanation", lines: [
+      { line: "src/app/dashboard/page.tsx", explanation: "A path from the project root: go into src, then app, then dashboard, then open page.tsx." },
+      { line: "../lib/auth.ts", explanation: "A relative path meaning \"go up one folder, then into lib, then open auth.ts\"." },
+      { line: "./page.tsx", explanation: "A relative path meaning \"the page.tsx file in this exact same folder\"." },
+    ] },
+    { type: "callout", tone: "warning", text: "The two dots (..) always mean \"go up one folder\" - mixing up how many times you need it is one of the most common real-world bugs when importing files." },
+    { type: "common_mistake", text: "Beginners often guess at relative paths instead of carefully counting folder levels. When an import fails, count the folders between the two files instead of guessing." },
+    { type: "knowledge_check", question: "What does \"../\" mean in a file path?", options: [
+      "Stay in the exact same folder",
+      "Go to the very top of the entire file system",
+      "Go up one folder level from the current location",
+      "Create a brand new folder"
+    ], correctIndex: 2 },
+    { type: "summary", text: "File paths, whether absolute or relative, describe exactly where a file lives. Reading them carefully, one folder level at a time, avoids most import errors." },
+  ];
+
+  const lesson4 = await prisma.lesson.upsert({
+    where: { moduleId_slug: { moduleId: developerToolkit.id, slug: "reading-a-file-path" } },
+    update: { title: "Reading a File Path", order: 2, status: ContentStatus.PUBLISHED, content: lesson4Content },
+    create: { moduleId: developerToolkit.id, slug: "reading-a-file-path", title: "Reading a File Path", order: 2, status: ContentStatus.PUBLISHED, content: lesson4Content },
+  });
+
+  await prisma.lessonSkill.upsert({
+    where: { lessonId_skillId: { lessonId: lesson4.id, skillId: skillFilePaths.id } },
+    update: {},
+    create: { lessonId: lesson4.id, skillId: skillFilePaths.id },
+  });
+
+  const mission4 = await prisma.mission.upsert({
+    where: { lessonId_slug: { lessonId: lesson4.id, slug: "predict-the-path" } },
+    update: {
+      title: "Predict the Path",
+      type: "predict_output",
+      status: ContentStatus.PUBLISHED,
+      starterCode: "// File: src/app/dashboard/page.tsx\n// import from: src/lib/auth.ts\nimport { auth } from \"???\";",
+      explanation: "From src/app/dashboard/page.tsx, reaching src/lib/auth.ts requires going up two folder levels (out of dashboard, out of app) then into lib: \"../../lib/auth\".",
+      xpReward: 10,
+      difficulty: 2,
+    },
+    create: {
+      lessonId: lesson4.id,
+      slug: "predict-the-path",
+      title: "Predict the Path",
+      type: "predict_output",
+      status: ContentStatus.PUBLISHED,
+      starterCode: "// File: src/app/dashboard/page.tsx\n// import from: src/lib/auth.ts\nimport { auth } from \"???\";",
+      explanation: "From src/app/dashboard/page.tsx, reaching src/lib/auth.ts requires going up two folder levels (out of dashboard, out of app) then into lib: \"../../lib/auth\".",
+      xpReward: 10,
+      difficulty: 2,
+    },
+  });
+
+  await prisma.missionSkill.upsert({
+    where: { missionId_skillId: { missionId: mission4.id, skillId: skillFilePaths.id } },
+    update: {},
+    create: { missionId: mission4.id, skillId: skillFilePaths.id },
+  });
+
+  console.log("Seed complete: worlds, Web Foundations (2 modules, 4 lessons, 4 missions) upserted.");
 }
 
 main()
