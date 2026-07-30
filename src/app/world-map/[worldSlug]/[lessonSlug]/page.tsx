@@ -6,14 +6,7 @@ import { getLessonBySlug, getOrCreateLessonProgress } from "@/lib/curriculum";
 import { lessonContentSchema } from "@/lib/lesson-content";
 import { LessonContent } from "@/components/lesson-content";
 import { MarkCompleteButton } from "./mark-complete-button";
-
-const MISSION_ICON: Record<string, string> = {
-  multiple_choice: "📝",
-  predict_output: "🔮",
-  fill_in_blank: "✏️",
-  debug_challenge: "🐛",
-  code_writing: "💻",
-};
+import { MissionSolver, type MissionForClient } from "./mission-solver";
 
 export default async function LessonPage({
   params,
@@ -25,7 +18,11 @@ export default async function LessonPage({
     redirect("/sign-in");
   }
 
-  const lesson = await getLessonBySlug(params.worldSlug, params.lessonSlug);
+  const lesson = await getLessonBySlug(
+    params.worldSlug,
+    params.lessonSlug,
+    session.user.id
+  );
   if (!lesson) {
     notFound();
   }
@@ -36,6 +33,23 @@ export default async function LessonPage({
   // complete) happens here rather than in the page markup, keeping the
   // write out of the render path's control flow.
   const progress = await getOrCreateLessonProgress(session.user.id, lesson.id);
+
+  // Only the fields the client actually needs are sent down - solutionCode
+  // and the full test spec never leave the server (CLAUDE.md section 5).
+  const missionsForClient: MissionForClient[] = lesson.missions.map(
+    (mission) => ({
+      id: mission.id,
+      title: mission.title,
+      type: mission.type,
+      prompt: mission.prompt,
+      options: (mission.options as string[] | null) ?? null,
+      starterCode: mission.starterCode,
+      explanation: mission.explanation,
+      xpReward: mission.xpReward,
+      difficulty: mission.difficulty,
+      alreadyPassed: mission.attempts.length > 0,
+    })
+  );
 
   return (
     <main className="min-h-screen bg-background text-text p-8 max-w-3xl mx-auto">
@@ -59,37 +73,14 @@ export default async function LessonPage({
         )}
       </div>
 
-      {lesson.missions.length > 0 && (
+      {missionsForClient.length > 0 && (
         <div className="mt-8 border-t border-border pt-6">
           <h2 className="text-lg font-medium">🎮 Missions</h2>
           <p className="text-sm text-text-muted mt-1">
-            Interactive mission solving and grading is not built yet - this is
-            a preview of what is coming.
+            Solve each mission for real - your answer is graded on the
+            server and awards XP the first time you get it right.
           </p>
-          <div className="space-y-3 mt-3">
-            {lesson.missions.map((mission) => (
-              <div
-                key={mission.id}
-                className="border border-border rounded-lg bg-panel p-3"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="font-medium flex items-center gap-2">
-                    <span aria-hidden="true">
-                      {MISSION_ICON[mission.type] ?? "🎯"}
-                    </span>
-                    {mission.title}
-                  </p>
-                  <span className="text-xs text-warning bg-background border border-border rounded-full px-2 py-0.5 whitespace-nowrap">
-                    +{mission.xpReward} XP
-                  </span>
-                </div>
-                <div className="flex items-center justify-between mt-1">
-                  <p className="text-xs text-text-muted">Type: {mission.type}</p>
-                  <span className="text-xs text-text-muted">🔒 Coming soon</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <MissionSolver missions={missionsForClient} />
         </div>
       )}
 
