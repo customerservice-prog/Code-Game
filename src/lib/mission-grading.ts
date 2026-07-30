@@ -47,7 +47,7 @@ function runJsAndCollectLogs(
   // KNOWN_ISSUES.md for the honest limitations of this approach.
   const context = vm.createContext({ console: sandboxConsole });
   try {
-    const script = new vm.Script(code, { timeout: timeoutMs });
+        const script = new vm.Script(code);
     script.runInContext(context, { timeout: timeoutMs });
     return { logs };
   } catch (err) {
