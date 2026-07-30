@@ -8,7 +8,7 @@ import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { LESSON_XP } from "@/lib/gamification";
+import { LESSON_XP, getUserGameStats } from "@/lib/gamification";
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -85,9 +85,16 @@ export async function markLessonComplete(lessonId: string, worldSlug: string) {
   revalidatePath("/world-map");
   revalidatePath("/dashboard");
 
+  // Re-fetch derived stats so the client can show an up-to-date level and
+  // XP-to-next-level progress bar right after completing a lesson.
+  const stats = await getUserGameStats(userId);
+
   return {
     xpAwarded: alreadyCompleted ? 0 : LESSON_XP,
     currentStreak,
     alreadyCompleted,
+    level: stats.level,
+    xpIntoLevel: stats.xpIntoLevel,
+    xpForNextLevel: stats.xpForNextLevel,
   };
 }
