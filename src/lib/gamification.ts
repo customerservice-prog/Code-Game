@@ -3,13 +3,19 @@
 // rule against putting important business logic directly in page
 // components.
 //
-// XP is intentionally derived (not stored) from completed lessons so it
-// never drifts out of sync with real progress: totalXp = completed lessons
-// * LESSON_XP. Levels are derived from totalXp. Streaks are tracked in the
-// Streak model and updated by the markLessonComplete server action.
-// Achievements are derived entirely from real progress data below -
-// nothing here is faked or hardcoded to look impressive.
+// XP is intentionally derived (not stored as a running total) so it never
+// drifts out of sync with real progress: totalXp = completed lessons *
+// LESSON_XP, plus the sum of xpAwarded across all of the user's mission
+// attempts. xpAwarded is only ever set to a non-zero value on a mission's
+// first successful attempt (see submitMissionAttempt in actions.ts), so
+// summing every attempt's xpAwarded is equivalent to summing "first pass"
+// XP without needing a separate distinct-per-mission query. Levels are
+// derived from totalXp. Streaks are tracked in the Streak model and
+// updated by the markLessonComplete server action. Achievements are
+// derived entirely from real progress data below - nothing here is faked
+// or hardcoded to look impressive.
 import { prisma } from "@/lib/prisma";
+import { MasteryLevel } from "@prisma/client";
 
 export const LESSON_XP = 20;
 export const LEVEL_XP = 100;
@@ -25,18 +31,42 @@ export function getLevelInfo(totalXp: number) {
   };
 }
 
-export async function getUserGameStats(userId: string) {
-  const [completedCount, streak] = await Promise.all([
-    prisma.lessonProgress.count({
-      where: { userId, completedAt: { not: null } },
-    }),
-    prisma.streak.findUnique({ where: { userId } }),
-  ]);
+// Maps a 0-100 skill mastery score onto the MasteryLevel enum. Used when a
+// passed mission attempt bumps a learner's UserSkill.masteryScore.
+export function masteryLevelFromScore(score: number): MasteryLevel {
+  if (score <= 0) return MasteryLevel.NOT_STARTED;
+  if (score < 20) return MasteryLevel.INTRODUCED;
+  if (score < 40) return MasteryLevel.PRACTICING;
+  if (score < 60) return MasteryLevel.DEVELOPING;
+  if (score < 80) return MasteryLevel.PROFICIENT;
+  return MasteryLevel.MASTERED;
+}
 
-  const totalXp = completedCount * LESSON_XP;
+export async function getUserGameStats(userId: string) {
+  const [completedCount, streak, missionXpAgg, passedMissions] =
+    await Promise.all([
+      prisma.lessonProgress.count({
+        where: { userId, completedAt: { not: null } },
+      }),
+      prisma.streak.findUnique({ where: { userId } }),
+      prisma.missionAttempt.aggregate({
+        where: { userId },
+        _sum: { xpAwarded: true },
+      }),
+      prisma.missionAttempt.findMany({
+        where: { userId, passed: true },
+        distinct: ["missionId"],
+        select: { missionId: true },
+      }),
+    ]);
+
+  const missionXp = missionXpAgg._sum.xpAwarded ?? 0;
+  const completedMissions = passedMissions.length;
+  const totalXp = completedCount * LESSON_XP + missionXp;
 
   return {
     totalXp,
+    completedMissions,
     currentStreak: streak?.currentStreak ?? 0,
     longestStreak: streak?.longestStreak ?? 0,
     ...getLevelInfo(totalXp),
@@ -59,9 +89,15 @@ export function getAchievements(input: {
   currentStreak: number;
   longestStreak: number;
   worldsCompleted: number;
+  completedMissions: number;
 }): Achievement[] {
-  const { completedLessons, currentStreak, longestStreak, worldsCompleted } =
-    input;
+  const {
+    completedLessons,
+    currentStreak,
+    longestStreak,
+    worldsCompleted,
+    completedMissions,
+  } = input;
 
   return [
     {
@@ -98,6 +134,27 @@ export function getAchievements(input: {
       label: "World Graduate",
       description: "Complete every lesson in a world.",
       earned: worldsCompleted >= 1,
+    },
+    {
+      id: "first-mission",
+      icon: "🎯",
+      label: "Mission Accepted",
+      description: "Solve your first interactive mission.",
+      earned: completedMissions >= 1,
+    },
+    {
+      id: "five-missions",
+      icon: "🧩",
+      label: "Problem Solver",
+      description: "Solve 5 interactive missions.",
+      earned: completedMissions >= 5,
+    },
+    {
+      id: "ten-missions",
+      icon: "🏆",
+      label: "Mission Master",
+      description: "Solve 10 interactive missions.",
+      earned: completedMissions >= 10,
     },
   ];
 }
