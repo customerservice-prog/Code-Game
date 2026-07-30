@@ -16,11 +16,17 @@ function KnowledgeCheck({
   const [checked, setChecked] = useState(false);
 
   return (
-    <div className="border border-border rounded-md bg-panel p-4">
+    <div className="border border-border rounded-lg bg-panel p-4">
+      <p className="text-xs uppercase tracking-wide text-info font-medium mb-2">
+        🧠 Knowledge Check
+      </p>
       <p className="font-medium mb-3">{block.question}</p>
-      <div className="space-y-2">
+      <div className="space-y-1">
         {block.options.map((option, index) => (
-          <label key={index} className="flex items-center gap-2 text-sm">
+          <label
+            key={index}
+            className="flex items-center gap-2 text-sm rounded-md px-2 py-1.5 cursor-pointer hover:bg-border"
+          >
             <input
               type="radio"
               name={block.question}
@@ -38,7 +44,7 @@ function KnowledgeCheck({
         type="button"
         onClick={() => setChecked(true)}
         disabled={selected === null}
-        className="mt-3 text-sm bg-primary text-background rounded-sm px-3 py-1 disabled:opacity-50"
+        className="mt-3 text-sm bg-primary text-background rounded-sm px-3 py-1 disabled:opacity-50 transition-transform duration-motion hover:scale-105"
       >
         Check answer
       </button>
@@ -49,13 +55,20 @@ function KnowledgeCheck({
           }`}
         >
           {selected === block.correctIndex
-            ? "Correct."
-            : "Not quite - review the explanation above and try again."}
+            ? "✅ Correct!"
+            : "❌ Not quite - review the explanation above and try again."}
         </p>
       )}
     </div>
   );
 }
+
+const CALLOUT_ICON: Record<string, string> = {
+  info: "💡",
+  warning: "⚠️",
+  success: "✅",
+  error: "🚫",
+};
 
 export function LessonContent({ blocks }: { blocks: LessonBlock[] }) {
   return (
@@ -64,7 +77,10 @@ export function LessonContent({ blocks }: { blocks: LessonBlock[] }) {
         switch (block.type) {
           case "heading":
             return (
-              <h2 key={index} className="text-xl font-semibold">
+              <h2
+                key={index}
+                className="text-xl font-semibold border-b-2 border-primary inline-block pb-1"
+              >
                 {block.text}
               </h2>
             );
@@ -76,38 +92,61 @@ export function LessonContent({ blocks }: { blocks: LessonBlock[] }) {
             );
           case "vocabulary":
             return (
-              <div key={index} className="border-l-2 border-info pl-3">
-                <p className="font-medium">{block.term}</p>
-                <p className="text-sm text-text-muted">{block.definition}</p>
+              <div
+                key={index}
+                className="flex gap-3 border border-border border-l-4 border-l-info rounded-lg bg-panel p-3"
+              >
+                <span className="text-xl leading-none" aria-hidden="true">
+                  📘
+                </span>
+                <div>
+                  <p className="font-medium">{block.term}</p>
+                  <p className="text-sm text-text-muted">{block.definition}</p>
+                </div>
               </div>
             );
           case "analogy":
             return (
-              <p
+              <div
                 key={index}
-                className="italic text-text-muted border-l-2 border-border pl-3"
+                className="flex gap-3 border border-border rounded-lg bg-panel p-3"
               >
-                {block.text}
-              </p>
+                <span className="text-xl leading-none" aria-hidden="true">
+                  💭
+                </span>
+                <p className="italic text-text-muted">{block.text}</p>
+              </div>
             );
           case "code_example":
             return (
-              <pre
+              <div
                 key={index}
-                className="bg-panel border border-border rounded-md p-3 overflow-x-auto text-sm"
+                className="rounded-lg border border-border overflow-hidden"
               >
-                <code>{block.code}</code>
-              </pre>
+                <div className="flex items-center gap-3 bg-border px-3 py-1.5">
+                  <span className="flex gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-error inline-block" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-warning inline-block" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-success inline-block" />
+                  </span>
+                  <span className="text-xs text-text-muted uppercase tracking-wide">
+                    {block.language}
+                  </span>
+                </div>
+                <pre className="bg-panel p-3 overflow-x-auto text-sm">
+                  <code>{block.code}</code>
+                </pre>
+              </div>
             );
           case "line_explanation":
             return (
               <div key={index} className="space-y-2">
                 {block.lines.map((line, lineIndex) => (
-                  <div key={lineIndex} className="text-sm">
-                    <code className="bg-panel border border-border rounded-sm px-1">
+                  <div key={lineIndex} className="text-sm flex gap-2">
+                    <code className="bg-panel border border-border rounded-sm px-1 whitespace-nowrap">
                       {line.line}
                     </code>
-                    <span className="text-text-muted"> - {line.explanation}</span>
+                    <span className="text-text-muted">→ {line.explanation}</span>
                   </div>
                 ))}
               </div>
@@ -116,7 +155,7 @@ export function LessonContent({ blocks }: { blocks: LessonBlock[] }) {
             return (
               <div
                 key={index}
-                className={`border rounded-md p-3 text-sm ${
+                className={`flex gap-2 border rounded-lg p-3 text-sm ${
                   block.tone === "warning"
                     ? "border-warning text-warning"
                     : block.tone === "error"
@@ -126,26 +165,33 @@ export function LessonContent({ blocks }: { blocks: LessonBlock[] }) {
                     : "border-info text-info"
                 }`}
               >
-                {block.text}
+                <span aria-hidden="true">{CALLOUT_ICON[block.tone]}</span>
+                <span>{block.text}</span>
               </div>
             );
           case "common_mistake":
             return (
               <div
                 key={index}
-                className="border border-warning rounded-md p-3 text-sm text-warning"
+                className="flex gap-2 border border-warning rounded-lg p-3 text-sm text-warning"
               >
-                <span className="font-medium">Common mistake: </span>
-                {block.text}
+                <span aria-hidden="true">⚠️</span>
+                <span>
+                  <span className="font-medium">Common mistake: </span>
+                  {block.text}
+                </span>
               </div>
             );
           case "knowledge_check":
             return <KnowledgeCheck key={index} block={block} />;
           case "summary":
             return (
-              <p key={index} className="border-t border-border pt-3 text-text-muted">
-                {block.text}
-              </p>
+              <div key={index} className="border-t border-border pt-3">
+                <p className="text-xs uppercase tracking-wide text-text-muted font-medium mb-1">
+                  🎯 Key takeaway
+                </p>
+                <p className="text-text-muted">{block.text}</p>
+              </div>
             );
           default:
             return null;
