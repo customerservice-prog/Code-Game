@@ -11,10 +11,10 @@ This file tracks the real, verified status of the CodeQuest Academy build. Only 
 - [~] Phase 3: Learning progress (real XP, levels, and streak tracking implemented and verified live: XP is derived from completed lessons (20 XP each, no fabricated numbers), levels are derived from total XP (100 XP per level), streaks count consecutive calendar days with at least one lesson completed, tracked in a real Streak table and updated by the mark-complete server action. A first real achievements system is also implemented - five achievements ("First Steps", "Getting Serious", "Streak Starter", "Streak Keeper", "World Graduate") computed entirely from real lesson/streak/world-completion data, shown as Earned/Locked on the dashboard. Mastery scoring is still not started; missions still display XP values as flavor text only since mission submission/grading does not exist yet)
 - [ ] Phase 4: Interactive missions (missions currently render as read-only previews only; no submission or grading yet)
 - [~] Phase 5: Learner experience (visual/gamification polish pass done: per-world icons and accent colors, real progress bars, numbered/checkmarked lesson rows, icon-coded lesson content blocks, a celebratory lesson-complete state showing real XP/level/streak, glowing gradient stat cards for XP/Level/Streak on the dashboard and World Map, and an achievements grid. Still missing notes and review features)
-- [~] Phase 6: Launch curriculum (2 of 17 worlds now have real, launch-quality content - Web Foundations and HTML Harbor - each with 2 modules, 4 lessons, and 4 missions, 8 lessons and 8 missions total. Still far below CLAUDE.md's minimums of 30 lessons and 100 missions; the other 15 worlds remain correctly marked "Upcoming")
+- [~] Phase 6: Launch curriculum (3 of 17 worlds now have real, launch-quality content - Web Foundations, HTML Harbor, and CSS City - each with 2 modules, 4 lessons, and 4 missions, 12 lessons and 12 missions total. Still far below CLAUDE.md's minimums of 30 lessons and 100 missions; the other 14 worlds remain correctly marked "Upcoming")
 - [ ] Phase 7: Production hardening
 
-Status: Repository contains planning documents plus a working Next.js app deployed on Railway with a real Postgres database. Real authentication is implemented and verified working end to end in production. The curriculum engine now has two real published worlds: Web Foundations and HTML Harbor (2 modules / 4 lessons / 4 missions each), with the other 15 worlds correctly marked "Upcoming". Learners can browse a visually polished World Map with real XP/level/streak totals, read full lesson content, mark lessons complete with a celebratory confirmation showing real XP/level/streak progress, and view a real achievements grid on the dashboard (all backed by real database writes and derived values). Missions are preview-only - no interactive submission/grading yet.
+Status: Repository contains planning documents plus a working Next.js app deployed on Railway with a real Postgres database. Real authentication is implemented and verified working end to end in production. The curriculum engine now has three real published worlds: Web Foundations, HTML Harbor, and CSS City (2 modules / 4 lessons / 4 missions each), with the other 14 worlds correctly marked "Upcoming". Learners can browse a visually polished World Map with real XP/level/streak totals, read full lesson content, mark lessons complete with a celebratory confirmation showing real XP/level/streak progress, and view a real achievements grid on the dashboard (all backed by real database writes and derived values). Missions are preview-only - no interactive submission/grading yet.
 
 ## Completed Features
 
@@ -30,7 +30,7 @@ Status: Repository contains planning documents plus a working Next.js app deploy
 - src/app/dashboard - protected by a real server-side session check (getServerSession); shows real lesson-progress counts, glowing gradient stat cards for total XP, level (with progress bar to next level), current streak, and longest streak, plus a real achievements grid (Earned/Locked, derived from real progress data)
 - src/app/layout.tsx, src/app/page.tsx, src/app/globals.css - root layout, landing page markup, design tokens, plus a small celebratory pop-in keyframe animation
 - src/types/next-auth.d.ts - real type augmentation for session/user id and role (avoids unsafe any casts)
-- prisma/seed.ts - idempotent curriculum seed script (upserts keyed on stable slugs), runs on every deploy start; seeds all 17 CLAUDE.md worlds (2 published - Web Foundations and HTML Harbor - 15 draft/"Upcoming"), 4 modules, 8 lessons, and 8 missions total across the two published worlds
+- prisma/seed.ts - idempotent curriculum seed script (upserts keyed on stable slugs), runs on every deploy start; seeds all 17 CLAUDE.md worlds (3 published - Web Foundations, HTML Harbor, and CSS City - 14 draft/"Upcoming"), 6 modules, 12 lessons, and 12 missions total across the three published worlds
 - src/lib/lesson-content.ts - zod-validated lesson content block schema (heading, paragraph, vocabulary, analogy, code_example, line_explanation, callout, common_mistake, knowledge_check, summary), validated server-side before rendering
 - src/lib/curriculum.ts - server-side data access helpers (getWorldsWithProgress, getWorldBySlug, getLessonBySlug, getOrCreateLessonProgress), kept out of page components per CLAUDE.md section 5
 - src/lib/world-visuals.ts - per-world icon + accent color metadata, purely presentational, used by the World Map and world detail pages
@@ -41,6 +41,7 @@ Status: Repository contains planning documents plus a working Next.js app deploy
 - Mark-complete server action and button - verifies the lesson exists server-side (never trusts a client-supplied id blindly), writes a real LessonProgress row to Postgres, updates a real Streak row (consecutive-calendar-day logic, only advances once per lesson so repeat clicks can't inflate it), and shows a celebratory "Lesson complete!" confirmation with the real XP just earned, current streak, and current level/progress-to-next-level, with a pop-in animation
 - Railway build and deploy pipeline verified working end to end, including real database schema sync and curriculum seeding on every deploy start
 - HTML Harbor world (2 modules - HTML Basics, Structuring Content; 4 lessons - What Is HTML?, Attributes and Nesting, Headings/Paragraphs/Lists, Links and Images; 4 missions), written to the same real-content standard as Web Foundations, published and verified live end to end (lesson content renders correctly, completing a lesson correctly awarded real XP and advanced the level/achievements state)
+- CSS City world (2 modules - CSS Basics, Layout Basics; 4 lessons - What Is CSS?, Selectors and the Cascade, The Box Model, Flexbox Basics; 4 missions), written to the same real-content standard as Web Foundations and HTML Harbor, published and verified live end to end (World Map shows CSS City as enterable, both modules and all 4 lessons render, and completing the first lesson correctly awarded +20 XP)
 
 ## Infrastructure (real, verified)
 
@@ -55,7 +56,7 @@ Status: Repository contains planning documents plus a working Next.js app deploy
 
 ## Current Work
 
-Added a second real, published world - HTML Harbor (2 modules, 4 lessons, 4 missions) - written to the same real-content, no-fake-data standard as Web Foundations, following the exact schema and conventions already established in prisma/seed.ts. Verified live end to end: the World Map now shows HTML Harbor as an enterable world (no longer "Upcoming"), all 4 lessons render their full content correctly, and completing the first lesson ("What Is HTML?") correctly awarded +20 XP, took total XP from 80 to exactly 100, correctly triggered a level-up to Level 2 at the 100 XP boundary, advanced HTML Harbor's progress to 1/4, and flipped the "Getting Serious" achievement from Locked to Earned once total completed lessons reached 5. Next logical step: continue expanding real curriculum content toward CLAUDE.md's launch minimums (30 lessons, 100 missions across more worlds), and/or begin Phase 4 (interactive mission submission and grading). Proceeding autonomously per user direction to keep building real, non-placeholder features.
+Added a third real, published world - CSS City (2 modules, 4 lessons, 4 missions) - written to the same real-content, no-fake-data standard as Web Foundations and HTML Harbor, following the exact schema and conventions already established in prisma/seed.ts. Verified live end to end: the World Map now shows CSS City as an enterable world (no longer "Upcoming"), both modules ("CSS Basics" and "Layout Basics") and all 4 lessons render their full content correctly (selectors, the cascade/specificity, the box model, flexbox), and completing the first lesson ("What Is CSS?") correctly awarded +20 XP, taking total XP from 100 to 120. Next logical step: continue expanding real curriculum content toward CLAUDE.md's launch minimums (30 lessons, 100 missions across more worlds), and/or begin Phase 4 (interactive mission submission and grading). Proceeding autonomously per user direction to keep building real, non-placeholder features.
 
 ## Blockers
 
@@ -69,19 +70,19 @@ Added a second real, published world - HTML Harbor (2 modules, 4 lessons, 4 miss
 See LAUNCH_CHECKLIST.md for the full list. High level:
 
 - Foundation: verified working Next.js app, database, auth, roles, CI - app/database/auth now real and verified; roles (OWNER/ADMIN/CURRICULUM_EDITOR/LEARNER) exist in the schema but are not yet used to gate any real permissions
-- Curriculum engine: real content now spans 2 of 17 worlds (4 modules / 8 lessons / 8 missions total), with real visual/gamification polish; CLAUDE.md section 12 requires at least 30 lessons and 100 missions at launch - more content is still needed
-- Learning progress: real XP, level, streak, and a first achievements system are now implemented and verified live across two worlds; mastery scoring is still not started
+- Curriculum engine: real content now spans 3 of 17 worlds (6 modules / 12 lessons / 12 missions total), with real visual/gamification polish; CLAUDE.md section 12 requires at least 30 lessons and 100 missions at launch - more content is still needed
+- Learning progress: real XP, level, streak, and a first achievements system are now implemented and verified live across three worlds; mastery scoring is still not started
 - Interactive code editor and safe execution, mission submission/grading - not started (missions currently preview-only)
 - Full learner experience: dashboard, world map, lessons, XP/level/streak, achievements, and a visual polish pass are done; notes and review features are not started
-- Minimum launch curriculum (30 lessons, 100 missions, capstones) - not yet met (8 of 30 lessons, 8 of 100 missions)
+- Minimum launch curriculum (30 lessons, 100 missions, capstones) - not yet met (12 of 30 lessons, 12 of 100 missions)
 - Security, accessibility, performance, and testing hardening
-- Railway production deployment (build/deploy pipeline, database, auth, two-world curriculum slice, visual polish, and XP/level/streak/achievements now verified working)
+- Railway production deployment (build/deploy pipeline, database, auth, three-world curriculum slice, visual polish, and XP/level/streak/achievements now verified working)
 
 ## Test Status
 
 - Unit tests: not started
 - Integration tests: not started
-- End-to-end tests: manual end-to-end verification only (sign-up, sign-in, protected dashboard; world map, world detail, lesson viewer, mark complete, celebratory confirmation with real XP/level/streak update; dashboard achievements grid flipping from Locked to Earned as lessons complete across two worlds; HTML Harbor world verified live end to end after publishing; all tested live in production with a real test account; no automated test suite yet)
+- End-to-end tests: manual end-to-end verification only (sign-up, sign-in, protected dashboard; world map, world detail, lesson viewer, mark complete, celebratory confirmation with real XP/level/streak update; dashboard achievements grid flipping from Locked to Earned as lessons complete across multiple worlds; HTML Harbor and CSS City worlds verified live end to end after publishing; all tested live in production with a real test account; no automated test suite yet)
 - Security tests: not started
 - Note: no automated test runner has ever been executed against this repository
 
@@ -90,8 +91,8 @@ See LAUNCH_CHECKLIST.md for the full list. High level:
 - GitHub repository: created, currently PUBLIC (owner should change to private)
 - Railway application service: created and deployed successfully (service "Code-Game", live)
 - Railway PostgreSQL service: created and online (service "Postgres"), linked to the app via real variable references, schema fully synced (28 tables)
-- Production URL: https://code-game-production.up.railway.app (landing page, fully functional sign-up/sign-in/protected dashboard, visually polished World Map with real XP/level/streak totals across two published worlds, world detail, lesson viewer, mark-complete, and achievements grid all live)
+- Production URL: https://code-game-production.up.railway.app (landing page, fully functional sign-up/sign-in/protected dashboard, visually polished World Map with real XP/level/streak totals across three published worlds, world detail, lesson viewer, mark-complete, and achievements grid all live)
 
 ## Last Updated
 
-2026-07-30 - Published a second real curriculum world, HTML Harbor (2 modules, 4 lessons, 4 missions), matching Web Foundations' real-content standard. Verified live end to end: World Map shows HTML Harbor as enterable, lesson content renders fully, and completing a lesson correctly updated XP (80 to 100), triggered a level-up to Level 2, updated HTML Harbor's progress to 1/4, and flipped the "Getting Serious" achievement to Earned.
+2026-07-30 - Published a third real curriculum world, CSS City (2 modules, 4 lessons, 4 missions), matching Web Foundations' and HTML Harbor's real-content standard. Verified live end to end: World Map shows CSS City as enterable, both modules and all 4 lessons render fully, and completing the first lesson correctly updated XP (100 to 120).
