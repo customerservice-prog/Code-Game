@@ -4,24 +4,6 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 
 ## Open Issues
 
-### Title: Sign-in page is non-functional
-- Severity: Critical
-- Area: Authentication
-- Description: src/app/sign-in renders a static email/password form. There is no auth backend, session handling, or credential verification wired up. Submitting the form does nothing meaningful.
-- Impact: Users cannot actually sign in; this is a visual placeholder only.
-- Workaround: None yet.
-- Status: Open
-- Date Logged: 2026-07-29
-
-### Title: Prisma schema not migrated against the real database
-- Severity: High
-- Area: Data layer
-- Description: A real Postgres database now exists and is linked via DATABASE_URL/DIRECT_URL, but prisma/schema.prisma has never been run through `prisma migrate`. No tables exist yet.
-- Impact: No feature that requires persistence can function yet.
-- Workaround: None. Requires running Prisma migrations (ideally from a real local/CI environment with a terminal).
-- Status: Open
-- Date Logged: 2026-07-29
-
 ### Title: AI tutor, email, error tracking, and rate limiting are unconfigured
 - Severity: Medium
 - Area: Infrastructure
@@ -31,7 +13,46 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 - Status: Open
 - Date Logged: 2026-07-29
 
+### Title: Database schema is synced via "prisma db push" instead of reviewed migrations
+- Severity: Low
+- Area: Data layer
+- Description: There is no local dev environment available to run `prisma migrate dev` and generate reviewable migration SQL files. Instead, `prisma db push` runs automatically on every container start to keep the live database schema in sync with prisma/schema.prisma.
+- Impact: Schema changes are not tracked as reviewable migration history, and `db push` can silently apply destructive changes (hence `--accept-data-loss`) without a diff to review first. Fine for a single environment early on; risky once there are multiple environments or collaborators.
+- Workaround: None yet. Should be replaced with real `prisma migrate` history once a proper local/CI environment exists.
+- Status: Open
+- Date Logged: 2026-07-29
+
 ## Resolved Issues
+
+### Title: Sign-in page is non-functional
+- Severity: Critical
+- Area: Authentication
+- Description: src/app/sign-in rendered a static email/password form with no auth backend, session handling, or credential verification wired up.
+- Impact: Users could not actually sign in; it was a visual placeholder only.
+- Workaround/Fix: Implemented real NextAuth credentials authentication (src/lib/auth.ts) backed by Postgres via Prisma, with bcrypt password hashing. Added a public registration endpoint and a real sign-up page, wired the sign-in page to call NextAuth's signIn(), and protected /dashboard with a real server-side session check. Verified end to end in production: created a real test account, confirmed the row in Postgres has a bcrypt-hashed password, and confirmed the session-protected dashboard renders the signed-in user's email.
+- Status: Resolved
+- Date Logged: 2026-07-29
+- Date Resolved: 2026-07-29
+
+### Title: Prisma schema not migrated against the real database
+- Severity: High
+- Area: Data layer
+- Description: A real Postgres database existed and was linked via DATABASE_URL/DIRECT_URL, but prisma/schema.prisma had never been applied to it. No tables existed yet.
+- Impact: No feature that requires persistence could function yet.
+- Workaround/Fix: Added `prisma db push --accept-data-loss` to the app's start script so the schema syncs to the real database on every deploy. All 28 tables now exist and are confirmed via Railway's database browser. See the new "prisma db push instead of reviewed migrations" open issue above for the follow-up tech debt this introduces.
+- Status: Resolved
+- Date Logged: 2026-07-29
+- Date Resolved: 2026-07-29
+
+### Title: Railway deployment failing because "prisma db push" ran during the build step
+- Severity: Critical
+- Area: Build pipeline
+- Description: The build script was changed to run `prisma generate && prisma db push --accept-data-loss && next build`. This failed every build with `Error: P1001: Can't reach database server at postgres.railway.internal:5432`.
+- Impact: Every deployment failed during the build step; the previous (pre-auth) deployment remained active in the meantime, so the live site stayed up but without any of the new authentication code.
+- Workaround/Fix: Railway's build step runs in an isolated builder environment without access to the project's private network, so it cannot reach other services like Postgres via their `*.railway.internal` hostname - only the running deploy container has that access. Moved `prisma db push` out of the build script and into the start script (`prisma db push --accept-data-loss --skip-generate && next start`), keeping `prisma generate` (which needs no DB access) in the build script. Verified the fix: the next deploy's logs showed "Your database is now in sync with your Prisma schema" followed by a successful Next.js server start.
+- Status: Resolved
+- Date Logged: 2026-07-29
+- Date Resolved: 2026-07-29
 
 ### Title: Railway build failing due to invalid ESLint rule reference
 - Severity: Critical
