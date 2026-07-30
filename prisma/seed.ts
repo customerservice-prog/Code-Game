@@ -6,12 +6,12 @@ import { PrismaClient, ContentStatus } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// The full world list from CLAUDE.md section 11. Only "Web Foundations" has
-// real, launch-quality lessons so far - every other world is intentionally
-// left in DRAFT status with no modules, which the world map UI reads as
-// "Upcoming" and excludes from completion calculations (CLAUDE.md section 11
-// requires worlds without launch-quality lessons to be labeled Upcoming,
-// never presented as complete).
+// The full world list from CLAUDE.md section 11. "Web Foundations" and
+// "HTML Harbor" have real, launch-quality lessons so far - every other
+// world is intentionally left in DRAFT status with no modules, which the
+// world map UI reads as "Upcoming" and excludes from completion
+// calculations (CLAUDE.md section 11 requires worlds without launch-quality
+// lessons to be labeled Upcoming, never presented as complete).
 const WORLDS: Array<{
   slug: string;
   title: string;
@@ -20,7 +20,7 @@ const WORLDS: Array<{
   status: ContentStatus;
 }> = [
   { slug: "web-foundations", title: "Web Foundations", summary: "How the web actually works, before you write a line of code.", order: 1, status: ContentStatus.PUBLISHED },
-  { slug: "html-harbor", title: "HTML Harbor", summary: "Structure content with HTML.", order: 2, status: ContentStatus.DRAFT },
+  { slug: "html-harbor", title: "HTML Harbor", summary: "Structure content with HTML.", order: 2, status: ContentStatus.PUBLISHED },
   { slug: "css-city", title: "CSS City", summary: "Style and layout with CSS.", order: 3, status: ContentStatus.DRAFT },
   { slug: "javascript-jungle", title: "JavaScript Jungle", summary: "Programming fundamentals with JavaScript.", order: 4, status: ContentStatus.DRAFT },
   { slug: "typescript-tower", title: "TypeScript Tower", summary: "Add types to your JavaScript.", order: 5, status: ContentStatus.DRAFT },
@@ -345,7 +345,306 @@ async function main() {
     create: { missionId: mission4.id, skillId: skillFilePaths.id },
   });
 
-  console.log("Seed complete: worlds, Web Foundations (2 modules, 4 lessons, 4 missions) upserted.");
+  // ---------- World 2: HTML Harbor ----------
+  const htmlHarbor = await prisma.world.findUniqueOrThrow({ where: { slug: "html-harbor" } });
+
+  const htmlBasics = await prisma.module.upsert({
+    where: { worldId_slug: { worldId: htmlHarbor.id, slug: "html-basics" } },
+    update: { title: "HTML Basics", summary: "The building blocks of every web page.", order: 1, status: ContentStatus.PUBLISHED },
+    create: { worldId: htmlHarbor.id, slug: "html-basics", title: "HTML Basics", summary: "The building blocks of every web page.", order: 1, status: ContentStatus.PUBLISHED },
+  });
+
+  const skillHtmlSyntax = await prisma.skill.upsert({
+    where: { slug: "html-syntax" },
+    update: { name: "HTML syntax", description: "Reading and writing tags, elements, and attributes." },
+    create: { slug: "html-syntax", name: "HTML syntax", description: "Reading and writing tags, elements, and attributes." },
+  });
+
+  const skillNestingAttributes = await prisma.skill.upsert({
+    where: { slug: "nesting-and-attributes" },
+    update: { name: "Nesting and attributes", description: "Understanding parent-child element relationships and how attributes extend elements." },
+    create: { slug: "nesting-and-attributes", name: "Nesting and attributes", description: "Understanding parent-child element relationships and how attributes extend elements." },
+  });
+
+  // ---------- Lesson 1 (HTML Harbor) ----------
+  const htmlLesson1Content = [
+    { type: "heading", text: "What Is HTML?" },
+    { type: "paragraph", text: "Every web page you have ever visited is built from HTML underneath. HTML gives a page structure by describing what each piece of content is: a heading, a paragraph, a link, or an image." },
+    { type: "vocabulary", term: "HTML", definition: "HyperText Markup Language, the language browsers use to understand the structure of a web page." },
+    { type: "vocabulary", term: "Element", definition: "A single structural building block on a page, made of a tag, optional attributes, and content." },
+    { type: "vocabulary", term: "Tag", definition: "The markup written in angle brackets, such as <p> or <h1>, that defines the start or end of an element." },
+    { type: "analogy", text: "If a web page were a house, HTML would be the framing: the walls, floors, and rooms that give the house its structure before any paint or furniture is added." },
+    { type: "code_example", language: "html", code: "<h1>My Page</h1>\n<p>Welcome to my page.</p>" },
+    { type: "line_explanation", lines: [
+      { line: "<h1>My Page</h1>", explanation: "An <h1> element defines the single most important heading on the page." },
+      { line: "<p>Welcome to my page.</p>", explanation: "A <p> element defines a paragraph of regular text." },
+    ] },
+    { type: "callout", tone: "info", text: "Most HTML elements come in pairs: an opening tag like <p> and a matching closing tag like </p>, with content in between." },
+    { type: "common_mistake", text: "Beginners often forget closing tags, such as writing <p>Hello without </p>. Browsers sometimes recover from this, but it can cause unpredictable layout bugs." },
+    { type: "knowledge_check", question: "What is the main purpose of HTML on a web page?", options: [
+      "To store data in a database",
+      "To describe the structure and meaning of content",
+      "To make network requests",
+      "To style colors and fonts"
+    ], correctIndex: 1 },
+    { type: "summary", text: "HTML structures a page into elements like headings and paragraphs. Every other technology you will learn builds on top of this structure." },
+  ];
+
+  const htmlLesson1 = await prisma.lesson.upsert({
+    where: { moduleId_slug: { moduleId: htmlBasics.id, slug: "what-is-html" } },
+    update: { title: "What Is HTML?", order: 1, status: ContentStatus.PUBLISHED, content: htmlLesson1Content },
+    create: { moduleId: htmlBasics.id, slug: "what-is-html", title: "What Is HTML?", order: 1, status: ContentStatus.PUBLISHED, content: htmlLesson1Content },
+  });
+
+  await prisma.lessonSkill.upsert({
+    where: { lessonId_skillId: { lessonId: htmlLesson1.id, skillId: skillHtmlSyntax.id } },
+    update: {},
+    create: { lessonId: htmlLesson1.id, skillId: skillHtmlSyntax.id },
+  });
+
+  const htmlMission1 = await prisma.mission.upsert({
+    where: { lessonId_slug: { lessonId: htmlLesson1.id, slug: "spot-the-element" } },
+    update: {
+      title: "Spot the Element",
+      type: "multiple_choice",
+      status: ContentStatus.PUBLISHED,
+      explanation: "An <h1> is a heading element and <p> defines a paragraph. Recognizing each tag's purpose is the first step to reading any HTML page.",
+      xpReward: 10,
+      difficulty: 1,
+    },
+    create: {
+      lessonId: htmlLesson1.id,
+      slug: "spot-the-element",
+      title: "Spot the Element",
+      type: "multiple_choice",
+      status: ContentStatus.PUBLISHED,
+      explanation: "An <h1> is a heading element and <p> defines a paragraph. Recognizing each tag's purpose is the first step to reading any HTML page.",
+      xpReward: 10,
+      difficulty: 1,
+    },
+  });
+
+  await prisma.missionSkill.upsert({
+    where: { missionId_skillId: { missionId: htmlMission1.id, skillId: skillHtmlSyntax.id } },
+    update: {},
+    create: { missionId: htmlMission1.id, skillId: skillHtmlSyntax.id },
+  });
+
+  // ---------- Lesson 2 (HTML Harbor) ----------
+  const htmlLesson2Content = [
+    { type: "heading", text: "Attributes and Nesting" },
+    { type: "paragraph", text: "Elements can hold extra information called attributes, and elements can also be placed inside other elements. This nesting is what allows simple tags to build complex pages." },
+    { type: "vocabulary", term: "Attribute", definition: "Extra information added inside an opening tag, written as name=\"value\", such as an image's src attribute." },
+    { type: "vocabulary", term: "Nesting", definition: "Placing one element inside another, creating a parent-child relationship between them." },
+    { type: "analogy", text: "Nesting elements is like putting a smaller box inside a bigger box - the outer box (parent) contains and organizes whatever is inside it (children)." },
+    { type: "code_example", language: "html", code: "<div class=\"card\">\n  <h2>Title</h2>\n  <p>Some text inside the card.</p>\n</div>" },
+    { type: "line_explanation", lines: [
+      { line: "<div class=\"card\">", explanation: "A <div> is a generic container; class is an attribute used to target it with CSS later." },
+      { line: "<h2>Title</h2>", explanation: "A nested heading element, a child of the div." },
+      { line: "</div>", explanation: "The closing tag for the div, marking where its content ends." },
+    ] },
+    { type: "callout", tone: "warning", text: "Nested elements must close in the reverse order they were opened - closing tags out of order breaks the page structure." },
+    { type: "common_mistake", text: "A common bug is overlapping tags, such as writing <b><i>text</b></i> instead of closing </i> before </b>. Always close the most recently opened tag first." },
+    { type: "knowledge_check", question: "What is an HTML attribute?", options: [
+      "A separate HTML file",
+      "Extra information added inside an opening tag",
+      "A type of closing tag",
+      "A JavaScript function"
+    ], correctIndex: 1 },
+    { type: "summary", text: "Attributes add extra information to elements, and nesting lets elements contain other elements. Together they let a handful of tags describe complex page layouts." },
+  ];
+
+  const htmlLesson2 = await prisma.lesson.upsert({
+    where: { moduleId_slug: { moduleId: htmlBasics.id, slug: "attributes-and-nesting" } },
+    update: { title: "Attributes and Nesting", order: 2, status: ContentStatus.PUBLISHED, content: htmlLesson2Content },
+    create: { moduleId: htmlBasics.id, slug: "attributes-and-nesting", title: "Attributes and Nesting", order: 2, status: ContentStatus.PUBLISHED, content: htmlLesson2Content },
+  });
+
+  await prisma.lessonSkill.upsert({
+    where: { lessonId_skillId: { lessonId: htmlLesson2.id, skillId: skillNestingAttributes.id } },
+    update: {},
+    create: { lessonId: htmlLesson2.id, skillId: skillNestingAttributes.id },
+  });
+
+  const htmlMission2 = await prisma.mission.upsert({
+    where: { lessonId_slug: { lessonId: htmlLesson2.id, slug: "fix-the-nesting" } },
+    update: {
+      title: "Fix the Nesting",
+      type: "debug_challenge",
+      status: ContentStatus.PUBLISHED,
+      starterCode: "<div>\n  <p>Some text\n</div>\n</p>",
+      explanation: "The closing tags are out of order - </p> must come before </div> since the paragraph was opened after the div and must close first.",
+      xpReward: 10,
+      difficulty: 2,
+    },
+    create: {
+      lessonId: htmlLesson2.id,
+      slug: "fix-the-nesting",
+      title: "Fix the Nesting",
+      type: "debug_challenge",
+      status: ContentStatus.PUBLISHED,
+      starterCode: "<div>\n  <p>Some text\n</div>\n</p>",
+      explanation: "The closing tags are out of order - </p> must come before </div> since the paragraph was opened after the div and must close first.",
+      xpReward: 10,
+      difficulty: 2,
+    },
+  });
+
+  await prisma.missionSkill.upsert({
+    where: { missionId_skillId: { missionId: htmlMission2.id, skillId: skillNestingAttributes.id } },
+    update: {},
+    create: { missionId: htmlMission2.id, skillId: skillNestingAttributes.id },
+  });
+
+  // ---------- Module 2 (HTML Harbor): Structuring Content ----------
+  const structuringContent = await prisma.module.upsert({
+    where: { worldId_slug: { worldId: htmlHarbor.id, slug: "structuring-content" } },
+    update: { title: "Structuring Content", summary: "Organize real pages with headings, lists, links, and images.", order: 2, status: ContentStatus.PUBLISHED },
+    create: { worldId: htmlHarbor.id, slug: "structuring-content", title: "Structuring Content", summary: "Organize real pages with headings, lists, links, and images.", order: 2, status: ContentStatus.PUBLISHED },
+  });
+
+  const skillHeadingsLists = await prisma.skill.upsert({
+    where: { slug: "headings-and-lists" },
+    update: { name: "Headings and lists", description: "Structuring text content with headings and lists." },
+    create: { slug: "headings-and-lists", name: "Headings and lists", description: "Structuring text content with headings and lists." },
+  });
+
+  const skillLinksImages = await prisma.skill.upsert({
+    where: { slug: "links-and-images" },
+    update: { name: "Links and images", description: "Connecting pages and embedding media with anchor and image elements." },
+    create: { slug: "links-and-images", name: "Links and images", description: "Connecting pages and embedding media with anchor and image elements." },
+  });
+
+  // ---------- Lesson 3 (HTML Harbor) ----------
+  const htmlLesson3Content = [
+    { type: "heading", text: "Headings, Paragraphs, and Lists" },
+    { type: "paragraph", text: "Most of the text you read on the web is organized using just a few elements: headings for titles, paragraphs for body text, and lists for grouped items." },
+    { type: "vocabulary", term: "Heading", definition: "One of six elements (<h1> through <h6>) used to label sections of a page, ordered by importance." },
+    { type: "vocabulary", term: "Unordered list", definition: "A bullet-point list, written with a <ul> element containing one or more <li> items." },
+    { type: "analogy", text: "Headings and lists work like the table of contents and bullet points in a book - they let a reader scan the structure before reading every word." },
+    { type: "code_example", language: "html", code: "<h2>Ingredients</h2>\n<ul>\n  <li>Flour</li>\n  <li>Sugar</li>\n  <li>Eggs</li>\n</ul>" },
+    { type: "line_explanation", lines: [
+      { line: "<h2>Ingredients</h2>", explanation: "A second-level heading labeling the section below it." },
+      { line: "<ul>", explanation: "Starts an unordered (bulleted) list." },
+      { line: "<li>Flour</li>", explanation: "A single list item inside the unordered list." },
+    ] },
+    { type: "callout", tone: "info", text: "Use heading levels in order (h1, then h2, then h3) to describe a page's outline - skipping levels confuses screen readers and search engines." },
+    { type: "common_mistake", text: "Beginners sometimes use headings purely to make text bigger and bold. Headings should describe structure and meaning - use CSS to change how text looks." },
+    { type: "knowledge_check", question: "Which element creates a bulleted list item?", options: [
+      "<ul>",
+      "<li>",
+      "<ol>",
+      "<list>"
+    ], correctIndex: 1 },
+    { type: "summary", text: "Headings label sections in order of importance, and lists group related items. Choosing elements for meaning rather than appearance keeps pages accessible." },
+  ];
+
+  const htmlLesson3 = await prisma.lesson.upsert({
+    where: { moduleId_slug: { moduleId: structuringContent.id, slug: "headings-paragraphs-and-lists" } },
+    update: { title: "Headings, Paragraphs, and Lists", order: 1, status: ContentStatus.PUBLISHED, content: htmlLesson3Content },
+    create: { moduleId: structuringContent.id, slug: "headings-paragraphs-and-lists", title: "Headings, Paragraphs, and Lists", order: 1, status: ContentStatus.PUBLISHED, content: htmlLesson3Content },
+  });
+
+  await prisma.lessonSkill.upsert({
+    where: { lessonId_skillId: { lessonId: htmlLesson3.id, skillId: skillHeadingsLists.id } },
+    update: {},
+    create: { lessonId: htmlLesson3.id, skillId: skillHeadingsLists.id },
+  });
+
+  const htmlMission3 = await prisma.mission.upsert({
+    where: { lessonId_slug: { lessonId: htmlLesson3.id, slug: "choose-the-heading-level" } },
+    update: {
+      title: "Choose the Heading Level",
+      type: "multiple_choice",
+      status: ContentStatus.PUBLISHED,
+      explanation: "Heading levels should never skip - a page titled with <h1> should use <h2> for its next-level sections, not jump straight to <h3>.",
+      xpReward: 10,
+      difficulty: 1,
+    },
+    create: {
+      lessonId: htmlLesson3.id,
+      slug: "choose-the-heading-level",
+      title: "Choose the Heading Level",
+      type: "multiple_choice",
+      status: ContentStatus.PUBLISHED,
+      explanation: "Heading levels should never skip - a page titled with <h1> should use <h2> for its next-level sections, not jump straight to <h3>.",
+      xpReward: 10,
+      difficulty: 1,
+    },
+  });
+
+  await prisma.missionSkill.upsert({
+    where: { missionId_skillId: { missionId: htmlMission3.id, skillId: skillHeadingsLists.id } },
+    update: {},
+    create: { missionId: htmlMission3.id, skillId: skillHeadingsLists.id },
+  });
+
+  // ---------- Lesson 4 (HTML Harbor) ----------
+  const htmlLesson4Content = [
+    { type: "heading", text: "Links and Images" },
+    { type: "paragraph", text: "Links connect pages together, and images let you embed pictures directly in a page. Together they turn a single document into the interconnected, visual web." },
+    { type: "vocabulary", term: "Anchor element", definition: "The <a> element, used to create a clickable link to another page or resource, using its href attribute." },
+    { type: "vocabulary", term: "Alt text", definition: "A description provided in an image's alt attribute, read aloud by screen readers and shown if the image fails to load." },
+    { type: "analogy", text: "A link is like a street sign pointing to another location; alt text is like a caption you could hear even if you couldn't see the picture." },
+    { type: "code_example", language: "html", code: "<a href=\"https://example.com\">Visit Example</a>\n<img src=\"/cat.jpg\" alt=\"A sleeping orange cat\">" },
+    { type: "line_explanation", lines: [
+      { line: "<a href=\"https://example.com\">Visit Example</a>", explanation: "Creates a clickable link; href specifies the destination URL." },
+      { line: "<img src=\"/cat.jpg\" alt=\"A sleeping orange cat\">", explanation: "Embeds an image; alt provides a text description for accessibility." },
+    ] },
+    { type: "callout", tone: "warning", text: "Images without meaningful alt text are inaccessible to users relying on screen readers, and this is one of the most common real-world accessibility bugs." },
+    { type: "common_mistake", text: "Beginners often forget the alt attribute entirely, or leave it empty when the image conveys real information, which breaks accessibility for many users." },
+    { type: "knowledge_check", question: "What is the purpose of an image's alt attribute?", options: [
+      "To make the image load faster",
+      "To provide a text description for accessibility",
+      "To set the image's file size",
+      "To link the image to another page"
+    ], correctIndex: 1 },
+    { type: "summary", text: "Anchor elements link pages together, and images embed visual content. Meaningful alt text keeps that content accessible to everyone." },
+  ];
+
+  const htmlLesson4 = await prisma.lesson.upsert({
+    where: { moduleId_slug: { moduleId: structuringContent.id, slug: "links-and-images" } },
+    update: { title: "Links and Images", order: 2, status: ContentStatus.PUBLISHED, content: htmlLesson4Content },
+    create: { moduleId: structuringContent.id, slug: "links-and-images", title: "Links and Images", order: 2, status: ContentStatus.PUBLISHED, content: htmlLesson4Content },
+  });
+
+  await prisma.lessonSkill.upsert({
+    where: { lessonId_skillId: { lessonId: htmlLesson4.id, skillId: skillLinksImages.id } },
+    update: {},
+    create: { lessonId: htmlLesson4.id, skillId: skillLinksImages.id },
+  });
+
+  const htmlMission4 = await prisma.mission.upsert({
+    where: { lessonId_slug: { lessonId: htmlLesson4.id, slug: "write-an-accessible-image" } },
+    update: {
+      title: "Write an Accessible Image",
+      type: "code_writing",
+      status: ContentStatus.PUBLISHED,
+      starterCode: "<img src=\"/dog.jpg\">",
+      explanation: "A complete, accessible image tag needs a descriptive alt attribute, such as <img src=\"/dog.jpg\" alt=\"A brown dog running on grass\">.",
+      xpReward: 10,
+      difficulty: 2,
+    },
+    create: {
+      lessonId: htmlLesson4.id,
+      slug: "write-an-accessible-image",
+      title: "Write an Accessible Image",
+      type: "code_writing",
+      status: ContentStatus.PUBLISHED,
+      starterCode: "<img src=\"/dog.jpg\">",
+      explanation: "A complete, accessible image tag needs a descriptive alt attribute, such as <img src=\"/dog.jpg\" alt=\"A brown dog running on grass\">.",
+      xpReward: 10,
+      difficulty: 2,
+    },
+  });
+
+  await prisma.missionSkill.upsert({
+    where: { missionId_skillId: { missionId: htmlMission4.id, skillId: skillLinksImages.id } },
+    update: {},
+    create: { missionId: htmlMission4.id, skillId: skillLinksImages.id },
+  });
+
+  console.log("Seed complete: worlds, Web Foundations (2 modules, 4 lessons, 4 missions) and HTML Harbor (2 modules, 4 lessons, 4 missions) upserted.");
 }
 
 main()
