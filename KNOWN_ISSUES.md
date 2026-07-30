@@ -7,28 +7,19 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 ### Title: Curriculum content volume is far below the launch minimum
 - Severity: Medium
 - Area: Curriculum
-- Description: 3 of 17 worlds (Web Foundations, HTML Harbor, and CSS City) now have real published content: 6 modules, 12 lessons, 12 missions total. CLAUDE.md section 12 requires at least 30 lessons and 100 missions at launch.
-- Impact: The product is not launch-ready from a content perspective, even though the underlying engine (data model, seed pipeline, renderer, progress tracking) is real and working, and now proven to extend cleanly to a third world.
-- Workaround: The other 14 worlds are correctly marked "Upcoming" in the UI rather than shown as empty/broken, per CLAUDE.md section 11.
+- Description: 4 of 17 worlds (Web Foundations, HTML Harbor, CSS City, and JavaScript Jungle) now have real published content: 8 modules, 16 lessons, 16 missions total. CLAUDE.md section 12 requires at least 30 lessons and 100 missions at launch.
+- Impact: The product is not launch-ready from a content perspective, even though the underlying engine (data model, seed pipeline, renderer, progress tracking, and now real mission grading) is real and working, and now proven to extend cleanly to a fourth world.
+- Workaround: The other 13 worlds are correctly marked "Upcoming" in the UI rather than shown as empty/broken, per CLAUDE.md section 11.
 - Status: Open
 - Date Logged: 2026-07-29
-- Date Updated: 2026-07-30 (CSS City published, raising real content from 2 to 3 worlds and from 8 to 12 lessons/missions)
+- Date Updated: 2026-07-30 (JavaScript Jungle published, raising real content from 3 to 4 worlds and from 12 to 16 lessons/missions; all 16 missions across all four worlds then given real grading specs instead of preview-only XP text)
 
-### Title: Missions are preview-only - no submission or grading yet
-- Severity: Medium
-- Area: Curriculum / Interactive missions
-- Description: The lesson viewer lists each lesson's missions (title, type, XP) but there is no UI to actually submit an answer, run code, or receive a grade. This is intentionally deferred to CLAUDE.md's Phase 4 (Interactive missions).
-- Impact: Learners can read lesson content and mark lessons complete, but cannot yet complete missions for XP or skill mastery. Note: as of 2026-07-30, lesson completion itself does award real XP/levels and update a real streak - only mission-level XP/grading remains unbuilt.
-- Workaround: The mission list is clearly labeled "Interactive mission solving and grading is not built yet" so it is not presented as a finished feature.
-- Status: Open
-- Date Logged: 2026-07-29
-
-### Title: Mastery scoring is not implemented
+### Title: The mission code input is a plain textarea, not a full code editor
 - Severity: Low
-- Area: Learning progress
-- Description: The UserSkill/masteryScore tables exist in the schema but nothing writes to them yet. XP, levels, streaks, and a first achievements system (all added 2026-07-30) are real so far; per-skill mastery scoring is the remaining unbuilt piece of learning progress.
-- Impact: The dashboard does not show any skill mastery breakdown - only XP/level/streak/achievements, all of which are real.
-- Workaround: None needed - mastery scoring simply is not surfaced anywhere yet, so nothing fake is shown.
+- Area: Interactive missions
+- Description: debug_challenge and code_writing missions render an editable plain-text textarea element for the learner's code, rather than a syntax-highlighted editor like Monaco or CodeMirror. The @monaco-editor/react dependency exists in package.json but is not yet wired up.
+- Impact: Code-writing missions work correctly (submissions are graded for real), but the editing experience lacks syntax highlighting, line numbers matching the rest of the site's styling, and other code-editor conveniences.
+- Workaround: None needed functionally - grading and XP work correctly regardless of the input widget. Purely a UX polish item.
 - Status: Open
 - Date Logged: 2026-07-30
 
@@ -44,20 +35,50 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 ### Title: Database schema is synced via "prisma db push" instead of reviewed migrations
 - Severity: Low
 - Area: Data layer
-- Description: There is no local dev environment available to run `prisma migrate dev` and generate reviewable migration SQL files. Instead, `prisma db push` runs automatically on every container start to keep the live database schema in sync with prisma/schema.prisma.
-- Impact: Schema changes are not tracked as reviewable migration history, and `db push` can silently apply destructive changes (hence --accept-data-loss) without a diff to review first. Fine for a single environment early on; risky once there are multiple environments or collaborators.
+- Description: There is no local dev environment available to run prisma migrate dev and generate reviewable migration SQL files. Instead, prisma db push runs automatically on every container start to keep the live database schema in sync with prisma/schema.prisma.
+- Impact: Schema changes are not tracked as reviewable migration history, and db push can silently apply destructive changes (hence --accept-data-loss) without a diff to review first. Fine for a single environment early on; risky once there are multiple environments or collaborators.
 - Workaround: None yet. Should be replaced with real prisma migrate history once a proper local/CI environment exists.
 - Status: Open
 - Date Logged: 2026-07-29
 
 ## Resolved Issues
 
+### Title: Missions were preview-only - no submission or grading
+- Severity: Medium
+- Area: Curriculum / Interactive missions
+- Description: The lesson viewer used to list each lesson's missions (title, type, XP) with no way to actually submit an answer, run code, or receive a grade - every mission showed a "locked, coming soon" badge instead.
+- Impact: Learners could read lesson content and mark lessons complete, but could not complete missions for XP or skill mastery, and the experience felt unfinished/not entertaining.
+- Workaround/Fix: Added prompt/options fields to Mission and a per-mission grading spec (MissionTest.expected) covering five check types: multiple choice, exact-text prediction (with acceptable-answer variants), regex-based code checks, HTML nesting-order checks, and one mission that actually executes the learner's JavaScript in a sandboxed Node vm (hard timeout, console-only global) and compares captured output. Built a real client component (mission-solver.tsx) rendering the right input per mission type, and a submitMissionAttempt server action that re-fetches and validates the mission server-side (never trusting the client), grades it, records a real MissionAttempt, and awards XP/skill mastery only on a genuine first pass. Verified live end to end for a predict_output mission and a multiple_choice mission: both returned "Mission passed", awarded XP exactly once, and updated the dashboard's Total XP, Level, and Missions Solved stat.
+- Status: Resolved
+- Date Logged: 2026-07-29
+- Date Resolved: 2026-07-30
+
+### Title: Mastery scoring was not implemented
+- Severity: Low
+- Area: Learning progress
+- Description: The UserSkill/masteryScore tables existed in the schema but nothing wrote to them yet.
+- Impact: The dashboard showed no skill mastery breakdown.
+- Workaround/Fix: submitMissionAttempt now bumps the masteryScore (+20, capped at 100) of every skill linked to a mission the very first time that mission is passed, and maps the new score onto the MasteryLevel enum via a new masteryLevelFromScore helper in gamification.ts. Repeat passes of an already-solved mission do not inflate mastery further.
+- Status: Resolved
+- Date Logged: 2026-07-30
+- Date Resolved: 2026-07-30
+
+### Title: Two TypeScript build failures when shipping mission grading
+- Severity: High
+- Area: Build pipeline
+- Description: The commit adding mission metadata to prisma/seed.ts failed Railway's build with "Type 'Record<string, unknown>' is not assignable to type 'InputJsonValue | NullableJsonNullValueInput | undefined'" on the MissionTest.expected field, because the MISSION_META type declared a test field typed as a generic Record<string, unknown> instead of Prisma's actual JSON input type. After fixing that and redeploying, a second, separate build failure surfaced in src/lib/mission-grading.ts: "Object literal may only specify known properties, and 'timeout' does not exist in type 'ScriptOptions'" - the sandboxed JS runner had incorrectly passed a timeout option to the vm.Script constructor (Node's vm.Script constructor does not accept a timeout option; only script.runInContext(...) does).
+- Impact: Two consecutive Railway deployments failed during the build/type-check step. The live site was unaffected each time, since Railway kept serving the last successful deployment throughout.
+- Workaround/Fix: Changed the MISSION_META type to declare the test field as Prisma.InputJsonValue (importing Prisma from "@prisma/client") so the grading-spec object literals type-check correctly against the real Json field type. Removed the invalid timeout argument from the vm.Script constructor call, keeping the timeout only on the runInContext call where it is actually a valid option. Verified both fixes by watching the next two Railway deployments reach ACTIVE with no build errors, then manually solving missions live in production to confirm the grading logic itself behaved correctly.
+- Status: Resolved
+- Date Logged: 2026-07-30
+- Date Resolved: 2026-07-30
+
 ### Title: Achievements were not implemented
 - Severity: Low
 - Area: Learning progress
 - Description: The Achievement/UserAchievement tables existed in the schema but nothing wrote to them or showed real earned/locked state anywhere in the UI.
 - Impact: Learners had no way to see recognition for real milestones beyond raw XP/streak numbers.
-- Workaround/Fix: Added a getAchievements helper in src/lib/gamification.ts that derives five real achievements (First Steps, Getting Serious, Streak Starter, Streak Keeper, World Graduate) entirely from existing real data (completed-lesson count, current/longest streak, and per-world completion), with no new database writes needed. Rendered as an Earned/Locked grid on the dashboard. Verified live: completing the final lesson in Web Foundations flipped "World Graduate" from Locked to Earned in production, and later completing the first HTML Harbor lesson flipped "Getting Serious" from Locked to Earned once total completed lessons reached 5.
+- Workaround/Fix: Added a getAchievements helper in src/lib/gamification.ts that derives real achievements entirely from existing real data (completed-lesson count, current/longest streak, per-world completion, and - as of 2026-07-30 - completed-mission count), with no fabricated data. Rendered as an Earned/Locked grid on the dashboard. Verified live multiple times, most recently when solving a mission for the first time correctly flipped "Mission Accepted" from Locked to Earned in production.
 - Status: Resolved
 - Date Logged: 2026-07-30
 - Date Resolved: 2026-07-30
@@ -77,7 +98,7 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 - Area: Documentation / tooling process
 - Description: A prior commit titled "Update PROJECT_STATUS.md" was made via the GitHub web editor's clipboard-paste workflow, but the paste did not actually change any text before committing, resulting in a real commit with 0 files changed. This left the document stale, still describing the curriculum engine as not started even after it had been built and verified live.
 - Impact: The tracking document did not reflect real, verified project state, which could have misled anyone reading it about progress.
-- Workaround/Fix: Discovered by checking the commit diff directly (GitHub showed "0 file changed" for that commit) rather than trusting the commit list alone. Rewrote PROJECT_STATUS.md with accurate current state and verified the new commit actually contains a real diff before moving on. Going forward, each editor paste is verified either by checking the "Commit changes" button's disabled state via a direct DOM query, or by reading the actual rendered file content, before committing. (This same class of paste-silently-not-applying bug recurred several more times during later gamification/achievements work, again during the HTML Harbor content push, and again during the CSS City content push (both the seed.ts commit and the PROJECT_STATUS.md update needed 2 attempts each before the paste actually registered) - every time it was caught using the same verification habit: never assume a click-through succeeded, always confirm the actual content changed or the commit button became enabled first.)
+- Workaround/Fix: Discovered by checking the commit diff directly (GitHub showed "0 file changed" for that commit) rather than trusting the commit list alone. Rewrote PROJECT_STATUS.md with accurate current state and verified the new commit actually contains a real diff before moving on. Going forward, each editor paste is verified either by checking the "Commit changes" button's disabled state via a direct DOM query, or by reading the actual rendered file content, before committing. (This same class of paste-silently-not-applying bug recurred repeatedly across later work - the gamification/achievements push, the HTML Harbor and CSS City content pushes, and again during the mission-grading work in this session, where several file edits and both tracking-doc updates needed 2-3 paste attempts each before the content actually registered, the browser's clipboard-write permission itself intermittently failed outright with a permission-denied error, and at one point the shared system clipboard was found to contain unrelated content from a different project entirely, requiring an explicit read-back verification step before every paste from then on. Every time it was caught using the same verification habit: never assume a click-through or paste succeeded, always confirm the actual content changed - or the commit button became enabled - before committing.)
 - Status: Resolved
 - Date Logged: 2026-07-29
 - Date Resolved: 2026-07-29
@@ -97,7 +118,7 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 - Area: Data layer
 - Description: A real Postgres database existed and was linked via DATABASE_URL/DIRECT_URL, but prisma/schema.prisma had never been applied to it. No tables existed yet.
 - Impact: No feature that requires persistence could function yet.
-- Workaround/Fix: Added `prisma db push --accept-data-loss` to the app's start script so the schema syncs to the real database on every deploy. All 28 tables now exist and are confirmed via Railway's database browser. See the "prisma db push instead of reviewed migrations" open issue above for the follow-up tech debt this introduces.
+- Workaround/Fix: Added prisma db push --accept-data-loss to the app's start script so the schema syncs to the real database on every deploy. All tables now exist and are confirmed via Railway's database browser. See the "prisma db push instead of reviewed migrations" open issue above for the follow-up tech debt this introduces.
 - Status: Resolved
 - Date Logged: 2026-07-29
 - Date Resolved: 2026-07-29
@@ -105,9 +126,9 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 ### Title: Railway deployment failing because "prisma db push" ran during the build step
 - Severity: Critical
 - Area: Build pipeline
-- Description: The build script was changed to run `prisma generate && prisma db push --accept-data-loss && next build`. This failed every build with `Error: P1001: Can't reach database server at postgres.railway.internal:5432`.
+- Description: The build script was changed to run prisma generate, then prisma db push --accept-data-loss, then next build. This failed every build with a P1001 error: "Can't reach database server at postgres.railway.internal:5432".
 - Impact: Every deployment failed during the build step; the previous (pre-auth) deployment remained active in the meantime, so the live site stayed up but without any of the new authentication code.
-- Workaround/Fix: Railway's build step runs in an isolated builder environment without access to the project's private network, so it cannot reach other services like Postgres via their *.railway.internal hostname - only the running deploy container has that access. Moved `prisma db push` out of the build script and into the start script (`prisma db push --accept-data-loss --skip-generate && next start`), keeping `prisma generate` (which needs no DB access) in the build script. Verified the fix: the next deploy's logs showed "Your database is now in sync with your Prisma schema" followed by a successful Next.js server start.
+- Workaround/Fix: Railway's build step runs in an isolated builder environment without access to the project's private network, so it cannot reach other services like Postgres via their *.railway.internal hostname - only the running deploy container has that access. Moved prisma db push out of the build script and into the start script (prisma db push --accept-data-loss --skip-generate, then next start), keeping prisma generate (which needs no DB access) in the build script. Verified the fix: the next deploy's logs showed "Your database is now in sync with your Prisma schema" followed by a successful Next.js server start.
 - Status: Resolved
 - Date Logged: 2026-07-29
 - Date Resolved: 2026-07-29
@@ -117,7 +138,7 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 - Area: Build pipeline
 - Description: .eslintrc.json referenced the rule "@typescript-eslint/no-explicit-any" without the corresponding plugin properly configured, causing "Definition for rule ... was not found" errors during next build across dashboard/page.tsx, layout.tsx, page.tsx, sign-in/page.tsx, and lib/config.ts.
 - Impact: Railway deployment failed; no live site was reachable.
-- Workaround/Fix: Simplified .eslintrc.json to just {"extends": "next/core-web-vitals"}, removing the custom rule. Committed to main; Railway auto-redeployed and the build succeeded.
+- Workaround/Fix: Simplified .eslintrc.json to just extend "next/core-web-vitals", removing the custom rule. Committed to main; Railway auto-redeployed and the build succeeded.
 - Status: Resolved
 - Date Logged: 2026-07-29
 - Date Resolved: 2026-07-29
@@ -125,15 +146,16 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 ### Title: Production build failing with "Cannot read properties of null (reading 'useContext')"
 - Severity: Critical
 - Area: Build pipeline
-- Description: After setting NODE_ENV to the standard "production" value and pointing DATABASE_URL/DIRECT_URL at the real Postgres database, the Railway build began failing during "Generating static pages" for "/" and "/sign-in" with a null useContext error, plus a secondary "<Html> should not be imported outside of pages/_document" error on the auto-generated 404/500 pages.
+- Description: After setting NODE_ENV to the standard "production" value and pointing DATABASE_URL/DIRECT_URL at the real Postgres database, the Railway build began failing during "Generating static pages" for "/" and "/sign-in" with a null useContext error, plus a secondary error about Html being imported outside of pages/_document on the auto-generated 404/500 pages.
 - Impact: Railway deployment failed; live site was temporarily unreachable via the newest deployment (previous deployment stayed active in the meantime).
-- Workaround/Fix: Added `export const dynamic = "force-dynamic";` to the root layout (src/app/layout.tsx) so pages render per-request instead of being statically prerendered at build time, avoiding the static-generation bug. Committed to main; Railway auto-redeployed and the build succeeded. Verified the live site still renders correctly.
+- Workaround/Fix: Added a force-dynamic route segment config to the root layout (src/app/layout.tsx) so pages render per-request instead of being statically prerendered at build time, avoiding the static-generation bug. Committed to main; Railway auto-redeployed and the build succeeded. Verified the live site still renders correctly.
 - Status: Resolved
 - Date Logged: 2026-07-29
 - Date Resolved: 2026-07-29
 
 ## Known Architectural Limitations
 
-- Server-side arbitrary code execution is intentionally excluded from the launch version for security reasons.
+- The sandboxed JavaScript execution used to grade the one mission type that runs real code (fix-the-infinite-loop) uses Node's built-in vm module with a console-only global and a hard timeout. This is a standard, not bulletproof, sandboxing approach appropriate for small pedagogical snippets - it is not a substitute for a true isolated sandbox (e.g. a separate worker process/container with resource limits) and should not be relied on to run untrusted code at scale.
+- Server-side arbitrary code execution beyond the above narrow, timeout-guarded case is intentionally excluded from the launch version for security reasons.
 - Full GitHub App repository import is deferred to a post-launch phase; launch version supports sample/upload-based project exploration only.
 - AI tutor features are optional and feature-flagged; the application must remain fully usable without an AI provider configured.
