@@ -7,6 +7,14 @@ import { lessonContentSchema } from "@/lib/lesson-content";
 import { LessonContent } from "@/components/lesson-content";
 import { MarkCompleteButton } from "./mark-complete-button";
 
+const MISSION_ICON: Record<string, string> = {
+  multiple_choice: "📝",
+  predict_output: "🔮",
+  fill_in_blank: "✏️",
+  debug_challenge: "🐛",
+  code_writing: "💻",
+};
+
 export default async function LessonPage({
   params,
 }: {
@@ -53,7 +61,7 @@ export default async function LessonPage({
 
       {lesson.missions.length > 0 && (
         <div className="mt-8 border-t border-border pt-6">
-          <h2 className="text-lg font-medium">Missions</h2>
+          <h2 className="text-lg font-medium">🎮 Missions</h2>
           <p className="text-sm text-text-muted mt-1">
             Interactive mission solving and grading is not built yet - this is
             a preview of what is coming.
@@ -62,17 +70,23 @@ export default async function LessonPage({
             {lesson.missions.map((mission) => (
               <div
                 key={mission.id}
-                className="border border-border rounded-md bg-panel p-3"
+                className="border border-border rounded-lg bg-panel p-3"
               >
                 <div className="flex items-center justify-between">
-                  <p className="font-medium">{mission.title}</p>
-                  <span className="text-xs text-text-muted">
-                    {mission.xpReward} XP
+                  <p className="font-medium flex items-center gap-2">
+                    <span aria-hidden="true">
+                      {MISSION_ICON[mission.type] ?? "🎯"}
+                    </span>
+                    {mission.title}
+                  </p>
+                  <span className="text-xs text-warning bg-background border border-border rounded-full px-2 py-0.5 whitespace-nowrap">
+                    +{mission.xpReward} XP
                   </span>
                 </div>
-                <p className="text-xs text-text-muted mt-1">
-                  Type: {mission.type}
-                </p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-xs text-text-muted">Type: {mission.type}</p>
+                  <span className="text-xs text-text-muted">🔒 Coming soon</span>
+                </div>
               </div>
             ))}
           </div>
