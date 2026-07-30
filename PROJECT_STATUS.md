@@ -8,13 +8,13 @@ This file tracks the real, verified status of the CodeQuest Academy build. Only 
 - [x] Phase 1: Foundation (scaffold committed, builds and deploys successfully on Railway with a real Postgres database connected and migrated)
 - [x] Phase 1.5: Real authentication (NextAuth credentials auth wired to Postgres via Prisma; sign-up, sign-in, and session-protected dashboard all verified working end to end in production)
 - [~] Phase 2: Curriculum engine (real slice built and verified live: data model, idempotent seed script, validated lesson-content schema/renderer, World Map, world detail page, lesson viewer, and a real "mark lesson complete" write to Postgres. Content volume is still far below the launch minimum — see Remaining Launch Requirements below)
-- [ ] Phase 3: Learning progress (XP, mastery, streaks, achievements — not started; missions display XP values but nothing is awarded yet)
+- [~] Phase 3: Learning progress (real XP and streak tracking implemented and verified live: XP is derived from completed lessons (20 XP each, no fabricated numbers), streaks count consecutive calendar days with at least one lesson completed, tracked in a real Streak table and updated by the mark-complete server action. Mastery scoring and achievements are still not started; missions still display XP values as flavor text only since mission submission/grading does not exist yet)
 - [ ] Phase 4: Interactive missions (missions currently render as read-only previews only; no submission or grading yet)
-- [~] Phase 5: Learner experience (visual/gamification polish pass done: per-world icons and accent colors, real progress bars, numbered/checkmarked lesson rows, icon-coded lesson content blocks, a celebratory lesson-complete state. Still missing streaks, notes, and review features)
+- [~] Phase 5: Learner experience (visual/gamification polish pass done: per-world icons and accent colors, real progress bars, numbered/checkmarked lesson rows, icon-coded lesson content blocks, a celebratory lesson-complete state that now also shows real XP earned and current streak, plus XP/streak badges on the dashboard and World Map. Still missing achievements, notes, and review features)
 - [ ] Phase 6: Launch curriculum
 - [ ] Phase 7: Production hardening
 
-Status: Repository contains planning documents plus a working Next.js app deployed on Railway with a real Postgres database. Real authentication is implemented and verified working end to end in production. The curriculum engine's first slice is implemented and verified live: 1 of 17 worlds (Web Foundations) has real published content (2 modules, 4 lessons, 4 missions), with the other 16 worlds correctly marked "Upcoming". Learners can browse a visually polished World Map (world icons, accent colors, real progress bars), read full lesson content (icon-coded vocabulary/analogy/code/callout blocks, a knowledge check), and mark lessons complete with a celebratory confirmation (a real database write). Missions are preview-only — no interactive submission/grading yet.
+Status: Repository contains planning documents plus a working Next.js app deployed on Railway with a real Postgres database. Real authentication is implemented and verified working end to end in production. The curriculum engine's first slice is implemented and verified live: 1 of 17 worlds (Web Foundations) has real published content (2 modules, 4 lessons, 4 missions), with the other 16 worlds correctly marked "Upcoming". Learners can browse a visually polished World Map with real XP/streak totals, read full lesson content, and mark lessons complete with a celebratory confirmation that shows real XP earned and streak progress (all real database writes). Missions are preview-only — no interactive submission/grading yet.
 
 ## Completed Features
 
@@ -27,17 +27,18 @@ Status: Repository contains planning documents plus a working Next.js app deploy
 - src/components/providers.tsx — SessionProvider wrapper, wired into the root layout
 - src/app/sign-up — real registration form, calls the register endpoint then signs the user in and redirects to /dashboard
 - src/app/sign-in — real sign-in form wired to NextAuth credentials auth, shows a real error message on invalid credentials
-- src/app/dashboard — protected by a real server-side session check (getServerSession); shows real lesson-progress counts
+- src/app/dashboard — protected by a real server-side session check (getServerSession); shows real lesson-progress counts plus real total XP, current streak, and longest streak
 - src/app/layout.tsx, src/app/page.tsx, src/app/globals.css — root layout, landing page markup, design tokens, plus a small celebratory pop-in keyframe animation
 - src/types/next-auth.d.ts — real type augmentation for session/user id and role (avoids unsafe any casts)
 - prisma/seed.ts — idempotent curriculum seed script (upserts keyed on stable slugs), runs on every deploy start; seeds all 17 CLAUDE.md worlds (1 published, 16 draft/"Upcoming"), 2 modules, 4 lessons, and 4 missions in Web Foundations
 - src/lib/lesson-content.ts — zod-validated lesson content block schema (heading, paragraph, vocabulary, analogy, code_example, line_explanation, callout, common_mistake, knowledge_check, summary), validated server-side before rendering
 - src/lib/curriculum.ts — server-side data access helpers (getWorldsWithProgress, getWorldBySlug, getLessonBySlug, getOrCreateLessonProgress), kept out of page components per CLAUDE.md section 5
 - src/lib/world-visuals.ts — per-world icon + accent color metadata, purely presentational, used by the World Map and world detail pages
-- src/app/world-map — real World Map page: per-world icon and accent-colored top border, a real percentage-based progress bar, "Upcoming" labeling for draft worlds
+- src/lib/gamification.ts — real XP/streak stats helper (getUserGameStats); XP is derived (completed lessons × LESSON_XP) rather than stored, so it can never drift out of sync with real progress
+- src/app/world-map — real World Map page: per-world icon and accent-colored top border, a real percentage-based progress bar, "Upcoming" labeling for draft worlds, and real ⚡ XP / 🔥 streak badges
 - src/app/world-map/[worldSlug] — world detail page: numbered lesson badges that become green checkmarks on completion, per-module progress bars, world icon in the header
 - src/app/world-map/[worldSlug]/[lessonSlug] — lesson viewer: icon-coded content blocks (vocabulary cards, analogy cards, a terminal-style code block, arrow-style line explanations, tone-coded callouts with icons, a labeled knowledge check, a labeled key-takeaway summary), a mission preview list with per-type icons and a "Coming soon" badge, and a "Mark lesson complete" button
-- Mark-complete server action and button — verifies the lesson exists server-side (never trusts a client-supplied id blindly), writes a real LessonProgress row to Postgres, and shows a celebratory "🎉 Lesson complete!" confirmation card with a pop-in animation
+- Mark-complete server action and button — verifies the lesson exists server-side (never trusts a client-supplied id blindly), writes a real LessonProgress row to Postgres, updates a real Streak row (consecutive-calendar-day logic, only advances once per lesson so repeat clicks can't inflate it), and shows a celebratory "🎉 Lesson complete!" confirmation showing the real XP just earned and the current streak, with a pop-in animation
 - Railway build and deploy pipeline verified working end to end, including real database schema sync and curriculum seeding on every deploy start
 
 ## Infrastructure (real, verified)
@@ -53,7 +54,7 @@ Status: Repository contains planning documents plus a working Next.js app deploy
 
 ## Current Work
 
-Completed a visual/gamification polish pass across the World Map, world detail, and lesson viewer pages (icons, accent colors, real progress bars, numbered/checkmarked lesson rows, icon-coded content blocks, a celebratory lesson-complete state) to make the existing curriculum slice feel like a real game rather than a plain document. Next logical step: continue expanding real curriculum content (more lessons/missions/worlds) toward CLAUDE.md's launch minimums, and/or begin Phase 3 (XP, mastery, streaks) or Phase 4 (interactive mission submission and grading). Proceeding autonomously per user direction to keep building real, non-placeholder features.
+Implemented real XP and streak tracking (Phase 3 slice): a shared gamification helper, streak logic in the mark-complete server action, and XP/streak display on the dashboard, World Map, and the lesson-complete confirmation. Verified live end to end by completing a real lesson and watching XP go from 40 to 60 and the streak go from 0 to 1. Next logical step: continue expanding real curriculum content (more lessons/missions/worlds) toward CLAUDE.md's launch minimums, and/or begin Phase 4 (interactive mission submission and grading) or achievements. Proceeding autonomously per user direction to keep building real, non-placeholder features.
 
 ## Blockers
 
@@ -68,18 +69,18 @@ See LAUNCH_CHECKLIST.md for the full list. High level:
 
 - Foundation: verified working Next.js app, database, auth, roles, CI — app/database/auth now real and verified; roles (OWNER/ADMIN/CURRICULUM_EDITOR/LEARNER) exist in the schema but are not yet used to gate any real permissions
 - Curriculum engine: real slice built (1 of 17 worlds has 2 modules / 4 lessons / 4 missions), now with real visual/gamification polish; CLAUDE.md section 12 requires at least 30 lessons and 100 missions at launch — far more content is needed
-- Learning progress: XP, mastery, streaks, achievements — not started (missions display XP values as flavor text only; nothing is awarded yet)
+- Learning progress: real XP and streak tracking now implemented and verified live; mastery scoring and achievements are still not started
 - Interactive code editor and safe execution, mission submission/grading — not started (missions currently preview-only)
-- Full learner experience: dashboard, world map, lessons, and a first visual polish pass are done; streaks, review, and notes are not started
+- Full learner experience: dashboard, world map, lessons, XP/streaks, and a visual polish pass are done; achievements, review, and notes are not started
 - Minimum launch curriculum (30 lessons, 100 missions, capstones) — not yet met
 - Security, accessibility, performance, and testing hardening
-- Railway production deployment (build/deploy pipeline, database, auth, curriculum slice, and visual polish now verified working)
+- Railway production deployment (build/deploy pipeline, database, auth, curriculum slice, visual polish, and XP/streak tracking now verified working)
 
 ## Test Status
 
 - Unit tests: not started
 - Integration tests: not started
-- End-to-end tests: manual end-to-end verification only (sign-up → sign-in → protected dashboard; world map → world detail → lesson viewer → mark complete → celebratory confirmation, all tested live in production with a real test account; no automated test suite yet)
+- End-to-end tests: manual end-to-end verification only (sign-up → sign-in → protected dashboard; world map → world detail → lesson viewer → mark complete → celebratory confirmation with real XP/streak update, all tested live in production with a real test account; no automated test suite yet)
 - Security tests: not started
 - Note: no automated test runner has ever been executed against this repository
 
@@ -88,8 +89,8 @@ See LAUNCH_CHECKLIST.md for the full list. High level:
 - GitHub repository: created, currently PUBLIC (owner should change to private)
 - Railway application service: created and deployed successfully (service "Code-Game", live)
 - Railway PostgreSQL service: created and online (service "Postgres"), linked to the app via real variable references, schema fully synced (28 tables)
-- Production URL: https://code-game-production.up.railway.app (landing page, fully functional sign-up/sign-in/protected dashboard, visually polished World Map, world detail, lesson viewer, and mark-complete all live)
+- Production URL: https://code-game-production.up.railway.app (landing page, fully functional sign-up/sign-in/protected dashboard, visually polished World Map with real XP/streak totals, world detail, lesson viewer, and mark-complete all live)
 
 ## Last Updated
 
-2026-07-30 — Completed a real visual/gamification polish pass: per-world icons and accent colors, real percentage-based progress bars on the World Map and world detail pages, numbered lesson rows that turn into green checkmarks on completion, icon-coded lesson content blocks (vocabulary, analogy, terminal-style code blocks, line explanations, callouts, a labeled knowledge check and key takeaway), mission preview cards with per-type icons and a "Coming soon" badge, and a celebratory "🎉 Lesson complete!" confirmation with a pop-in animation. All changes verified live in production, including re-testing the full sign-in → world map → lesson → mark-complete flow. Also fixed a real bug from the prior session (an accidentally empty "Update PROJECT_STATUS.md" commit) and added a second module (Developer Toolkit, 2 lessons, 2 missions) to Web Foundations. Repository is still public.
+2026-07-30 — Implemented real XP and streak tracking (src/lib/gamification.ts, streak logic in the mark-complete server action, XP/streak badges on the dashboard and World Map, and a richer lesson-complete confirmation showing real XP earned and current streak). Verified live end to end. Note on a mistake made and fixed during this work: the initial commit creating src/lib/gamification.ts silently did not save (the GitHub UI showed a successful commit dialog, but the file was not actually present in the repository afterward), which caused four consecutive Railway deployments to fail at build time with "Module not found: Can't resolve '@/lib/gamification'". This was caught by checking Railway's deployment history (not assumed successful), diagnosed from the build logs, fixed by recreating the file and verifying its presence in the repository before moving on, and confirmed with a clean successful deployment. The previously live version of the app was never affected since Railway keeps serving the last successful deployment while a new one builds.
