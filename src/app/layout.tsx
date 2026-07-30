@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { appConfig } from "@/lib/config";
+import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
   title: appConfig.name,
@@ -17,6 +18,8 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 // Root application shell.
+// Wrapped in <Providers> so client components can access the NextAuth
+// session (see src/components/providers.tsx and src/lib/auth.ts).
 // The full responsive layout (sidebar, header, mobile nav) described in
 // CLAUDE.md section 8 should be implemented here and in nested layouts.
 export default function RootLayout({
@@ -26,7 +29,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
