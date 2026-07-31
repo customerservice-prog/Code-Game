@@ -1863,12 +1863,7 @@ const nextjsLesson1Content = [
 { type: "vocabulary", term: "Route segment", definition: "A single folder inside src/app that contributes one piece of a URL path." },
 { type: "vocabulary", term: "page.tsx", definition: "The special file inside a route folder whose export is rendered when that route is visited." },
 { type: "analogy", text: "The app folder is like a building directory: each folder name is a floor, and the page.tsx file inside is the actual room you arrive in when you go there." },
-{ type: "code_example", language: "text", code: "src/app/
- about/
- page.tsx
- blog/
- [slug]/
- page.tsx" },
+{ type: "code_example", language: "text", code: "src/app/\n about/\n page.tsx\n blog/\n [slug]/\n page.tsx" },
 { type: "line_explanation", lines: [
 { line: "src/app/about/page.tsx", explanation: "Renders when a visitor requests the /about URL." },
 { line: "src/app/blog/[slug]/page.tsx", explanation: "A dynamic route segment - [slug] matches any value, like /blog/hello-world." },
@@ -1902,9 +1897,7 @@ update: {
 title: "Predict the Route",
 type: "predict_output",
 status: ContentStatus.PUBLISHED,
-starterCode: "src/app/
- about/
- page.tsx",
+starterCode: "src/app/\n about/\n page.tsx",
 explanation: "The about folder inside src/app becomes the /about URL segment, and page.tsx is what renders there.",
 xpReward: 10,
 difficulty: 1,
@@ -1915,9 +1908,7 @@ slug: "predict-the-route",
 title: "Predict the Route",
 type: "predict_output",
 status: ContentStatus.PUBLISHED,
-starterCode: "src/app/
- about/
- page.tsx",
+starterCode: "src/app/\n about/\n page.tsx",
 explanation: "The about folder inside src/app becomes the /about URL segment, and page.tsx is what renders there.",
 xpReward: 10,
 difficulty: 1,
@@ -1937,14 +1928,7 @@ const nextjsLesson2Content = [
 { type: "vocabulary", term: "Server Component", definition: "A component that renders on the server and sends only HTML to the browser, with no client-side JavaScript for that component." },
 { type: "vocabulary", term: "Client Component", definition: "A component marked with "use client" that runs in the browser and can use hooks like useState and event handlers." },
 { type: "analogy", text: "A Server Component is like a pre-cooked meal delivered ready to eat; a Client Component is like a meal kit that still needs some assembly (JavaScript) once it arrives in the browser." },
-{ type: "code_example", language: "jsx", code: ""use client";
-
-import { useState } from "react";
-
-function Counter() {
- const [count, setCount] = useState(0);
- return <button onClick={() => setCount(count + 1)}>{count}</button>;
-}" },
+{ type: "code_example", language: "jsx", code: "\"use client\";\n\nimport { useState } from \"react\";\n\nfunction Counter() {\n const [count, setCount] = useState(0);\n return <button onClick={() => setCount(count + 1)}>{count}</button>;\n}" },
 { type: "line_explanation", lines: [
 { line: ""use client";", explanation: "Must be the very first line of the file to mark every export below as a Client Component." },
 { line: "const [count, setCount] = useState(0);", explanation: "useState only works in Client Components, since it requires interactivity in the browser." },
@@ -2026,11 +2010,7 @@ const nextjsLesson3Content = [
 { type: "vocabulary", term: "Link component", definition: "A component from next/link that renders a real anchor tag but navigates client-side instead of triggering a full page reload." },
 { type: "vocabulary", term: "Client-side navigation", definition: "Moving between pages by updating the page in place with JavaScript, instead of requesting an entirely new HTML document." },
 { type: "analogy", text: "Using a plain <a> tag is like leaving a building and walking to a new one from scratch every time; Link is like taking an elevator between floors of the same building - faster, because most of the structure stays in place." },
-{ type: "code_example", language: "jsx", code: "import Link from "next/link";
-
-function Nav() {
- return <Link href="/about">About</Link>;
-}" },
+{ type: "code_example", language: "jsx", code: "import Link from \"next/link\";\n\nfunction Nav() {\n return <Link href=\"/about\">About</Link>;\n}" },
 { type: "line_explanation", lines: [
 { line: "import Link from "next/link";", explanation: "Imports the Link component used for client-side navigation." },
 { line: "return <Link href="/about">About</Link>;", explanation: "Renders a link to /about that navigates without a full page reload." },
@@ -2064,9 +2044,7 @@ update: {
 title: "Fix the Navigation Link",
 type: "debug_challenge",
 status: ContentStatus.PUBLISHED,
-starterCode: "function Nav() {
- return <a href="/about">About</a>;
-}",
+starterCode: "function Nav() {\n return <a href=\"/about\">About</a>;\n}",
 explanation: "Replacing the plain <a> tag with the Link component from next/link (imported at the top of the file) enables client-side navigation.",
 xpReward: 10,
 difficulty: 2,
@@ -2077,9 +2055,7 @@ slug: "fix-the-navigation-link",
 title: "Fix the Navigation Link",
 type: "debug_challenge",
 status: ContentStatus.PUBLISHED,
-starterCode: "function Nav() {
- return <a href="/about">About</a>;
-}",
+starterCode: "function Nav() {\n return <a href=\"/about\">About</a>;\n}",
 explanation: "Replacing the plain <a> tag with the Link component from next/link (imported at the top of the file) enables client-side navigation.",
 xpReward: 10,
 difficulty: 2,
@@ -2099,11 +2075,7 @@ const nextjsLesson4Content = [
 { type: "vocabulary", term: "Server Action", definition: "A function marked with "use server" that executes on the server but can be invoked directly from client-side code." },
 { type: "vocabulary", term: "use server", definition: "A directive placed at the top of a function or file marking it as a Server Action." },
 { type: "analogy", text: "A Server Action is like handing a sealed envelope to a courier: the client never sees or runs the logic inside, it just gets a result back once the server has processed it." },
-{ type: "code_example", language: "typescript", code: ""use server";
-
-async function saveName(name: string) {
- console.log("Saving:", name);
-}" },
+{ type: "code_example", language: "typescript", code: "\"use server\";\n\nasync function saveName(name: string) {\n console.log(\"Saving:\", name);\n}" },
 { type: "line_explanation", lines: [
 { line: ""use server";", explanation: "Marks this function as a Server Action, ensuring it only ever runs on the server." },
 { line: "async function saveName(name: string) {", explanation: "Server Actions are typically declared as async functions, since they often perform I/O like database writes." },
@@ -2137,9 +2109,7 @@ update: {
 title: "Write a Server Action",
 type: "code_writing",
 status: ContentStatus.PUBLISHED,
-starterCode: "// Write a Server Action function named saveName that takes
-// a single string parameter called name and logs it.
-",
+starterCode: "// Write a Server Action function named saveName that takes\n// a single string parameter called name and logs it.\n",
 explanation: "A correct Server Action starts with "use server"; and declares an async function, such as: "use server"; async function saveName(name: string) { console.log(name); }",
 xpReward: 10,
 difficulty: 2,
@@ -2150,9 +2120,7 @@ slug: "write-a-server-action",
 title: "Write a Server Action",
 type: "code_writing",
 status: ContentStatus.PUBLISHED,
-starterCode: "// Write a Server Action function named saveName that takes
-// a single string parameter called name and logs it.
-",
+starterCode: "// Write a Server Action function named saveName that takes\n// a single string parameter called name and logs it.\n",
 explanation: "A correct Server Action starts with "use server"; and declares an async function, such as: "use server"; async function saveName(name: string) { console.log(name); }",
 xpReward: 10,
 difficulty: 2,
