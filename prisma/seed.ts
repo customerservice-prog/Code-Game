@@ -2012,11 +2012,11 @@ const nextjsLesson3Content = [
 { type: "analogy", text: "Using a plain <a> tag is like leaving a building and walking to a new one from scratch every time; Link is like taking an elevator between floors of the same building - faster, because most of the structure stays in place." },
 { type: "code_example", language: "jsx", code: "import Link from \"next/link\";\n\nfunction Nav() {\n return <Link href=\"/about\">About</Link>;\n}" },
 { type: "line_explanation", lines: [
-{ line: "import Link from "next/link";", explanation: "Imports the Link component used for client-side navigation." },
-{ line: "return <Link href="/about">About</Link>;", explanation: "Renders a link to /about that navigates without a full page reload." },
+  { line: "import Link from \"next/link\";", explanation: "Imports the Link component used for client-side navigation." },
+  { line: "return <Link href=\"/about\">About</Link>;", explanation: "Renders a link to /about that navigates without a full page reload." },
 ] },
 { type: "callout", tone: "info", text: "Link still renders a real <a> tag under the hood, so it keeps working correctly for accessibility, right-click, and opening in a new tab." },
-{ type: "common_mistake", text: "Beginners often use a plain <a href="..."> for internal navigation, which causes a full page reload and loses the performance benefits Link provides." },
+  { type: "common_mistake", text: "Beginners often use a plain <a href=\"...\"> for internal navigation, which causes a full page reload and loses the performance benefits Link provides." },
 { type: "knowledge_check", question: "What is the main benefit of using Link instead of a plain <a> tag for internal navigation?", options: [
 "It looks different from a normal link",
 "It navigates client-side without a full page reload",
