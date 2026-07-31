@@ -1606,7 +1606,7 @@ const MISSION_META: Record<string, MissionMeta> = {
   },
   "predict-the-branch": {
     prompt: "What does this code print to the console?",
-    test: { checkType: "text_exact", answer: "Not hot" },
+    test: { checkType: "text_exact", answer: "Not hot" }, },
   "spot-the-valid-annotation": {
 prompt: "Which type annotation correctly restricts a variable to text values only?",
 options: ["let name: string;", "let name: number;", "let name: boolean;", "let name: any;"],
@@ -1623,7 +1623,6 @@ test: { checkType: "regex_all", patterns: ['greet\\([\'"]'] },
 "write-a-user-interface": {
 prompt: "Write an interface named User with a name property (string) and an age property (number), then submit.",
 test: { checkType: "regex_all", patterns: ["interface\\s+User", "name\\s*:\\s*string", "age\\s*:\\s*number"] },
-},
 },
   "fix-the-infinite-loop": {
     prompt: "Fix the loop so it prints 0 through 4 and terminates, then submit. Your code will actually run.",
