@@ -25,7 +25,7 @@ status: ContentStatus;
 { slug: "css-city", title: "CSS City", summary: "Style and layout with CSS.", order: 3, status: ContentStatus.PUBLISHED },
 { slug: "javascript-jungle", title: "JavaScript Jungle", summary: "Programming fundamentals with JavaScript.", order: 4, status: ContentStatus.PUBLISHED },
 { slug: "typescript-tower", title: "TypeScript Tower", summary: "Add types to your JavaScript.", order: 5, status: ContentStatus.PUBLISHED },
-{ slug: "react-realm", title: "React Realm", summary: "Build interactive UIs with React.", order: 6, status: ContentStatus.DRAFT },
+{ slug: "react-realm", title: "React Realm", summary: "Build interactive UIs with React.", order: 6, status: ContentStatus.PUBLISHED },
 { slug: "nextjs-network", title: "Next.js Network", summary: "Full-stack React with Next.js.", order: 7, status: ContentStatus.DRAFT },
 { slug: "api-headquarters", title: "API Headquarters", summary: "Requests, responses, and REST.", order: 8, status: ContentStatus.DRAFT },
 { slug: "database-district", title: "Database District", summary: "Model and store real data.", order: 9, status: ContentStatus.DRAFT },
@@ -1534,6 +1534,307 @@ create: { missionId: tsMission4.id, skillId: skillInterfaces.id },
 });
 
 
+
+
+// ---------- World 6: React Realm ----------
+const reactRealm = await prisma.world.findUniqueOrThrow({ where: { slug: "react-realm" } });
+
+const reactBasics = await prisma.module.upsert({
+  where: { worldId_slug: { worldId: reactRealm.id, slug: "react-basics" } },
+  update: { title: "React Basics", summary: "Write your first components with JSX.", order: 1, status: ContentStatus.PUBLISHED },
+  create: { worldId: reactRealm.id, slug: "react-basics", title: "React Basics", summary: "Write your first components with JSX.", order: 1, status: ContentStatus.PUBLISHED },
+});
+
+const skillJsxBasics = await prisma.skill.upsert({
+  where: { slug: "jsx-basics" },
+  update: { name: "JSX", description: "A syntax extension for JavaScript that lets you write HTML-like markup directly in your code." },
+  create: { slug: "jsx-basics", name: "JSX", description: "A syntax extension for JavaScript that lets you write HTML-like markup directly in your code." },
+});
+
+const skillJsxExpressions = await prisma.skill.upsert({
+  where: { slug: "jsx-expressions" },
+  update: { name: "JSX expressions", description: "Embedding dynamic JavaScript values inside JSX markup using curly braces." },
+  create: { slug: "jsx-expressions", name: "JSX expressions", description: "Embedding dynamic JavaScript values inside JSX markup using curly braces." },
+});
+
+const reactLesson1Content = [
+  { type: "heading", text: "Writing Your First JSX" },
+  { type: "paragraph", text: "React components are JavaScript functions that return JSX, a syntax extension that looks like HTML but compiles down to regular JavaScript." },
+  { type: "vocabulary", term: "JSX", definition: "A syntax extension for JavaScript that lets you write HTML-like markup directly in your code." },
+  { type: "vocabulary", term: "Component", definition: "A reusable, self-contained piece of UI defined as a JavaScript function that returns JSX." },
+  { type: "analogy", text: "JSX is like a recipe card that blends the ingredients (data) and instructions (markup) onto one page, instead of keeping them in separate binders." },
+  { type: "code_example", language: "jsx", code: "function Greeting() {\n  return <h1>Hello, world!</h1>;\n}" },
+  { type: "line_explanation", lines: [
+    { line: "function Greeting() {", explanation: "Defines a component named Greeting as a plain JavaScript function." },
+    { line: "return <h1>Hello, world!</h1>;", explanation: "JSX markup that looks like HTML but compiles down to JavaScript function calls." },
+    { line: "}", explanation: "Closes the component function." },
+  ] },
+  { type: "callout", tone: "info", text: "Component names must start with a capital letter, or React will treat them as a regular HTML tag instead of a component." },
+  { type: "common_mistake", text: "Beginners often forget that JSX requires exactly one root element - wrap multiple sibling elements in a single parent tag or a fragment (<>...</>)." },
+  { type: "knowledge_check", question: "What must a React component's name start with?", options: [
+    "a number",
+    "a lowercase letter",
+    "a capital letter",
+    "an underscore"
+  ], correctIndex: 2 },
+  { type: "summary", text: "JSX lets you write HTML-like markup inside JavaScript functions called components, which React renders to the page." },
+];
+
+const reactLesson1 = await prisma.lesson.upsert({
+  where: { moduleId_slug: { moduleId: reactBasics.id, slug: "writing-your-first-jsx" } },
+  update: { title: "Writing Your First JSX", order: 1, status: ContentStatus.PUBLISHED, content: reactLesson1Content },
+  create: { moduleId: reactBasics.id, slug: "writing-your-first-jsx", title: "Writing Your First JSX", order: 1, status: ContentStatus.PUBLISHED, content: reactLesson1Content },
+});
+
+await prisma.lessonSkill.upsert({
+  where: { lessonId_skillId: { lessonId: reactLesson1.id, skillId: skillJsxBasics.id } },
+  update: {},
+  create: { lessonId: reactLesson1.id, skillId: skillJsxBasics.id },
+});
+
+const reactMission1 = await prisma.mission.upsert({
+  where: { lessonId_slug: { lessonId: reactLesson1.id, slug: "spot-the-valid-component" } },
+  update: {
+    title: "Spot the Valid Component",
+    type: "multiple_choice",
+    status: ContentStatus.PUBLISHED,
+    explanation: "Component names must be capitalized, and the function must return the JSX rather than just writing it as a statement.",
+    xpReward: 10,
+    difficulty: 1,
+  },
+  create: {
+    lessonId: reactLesson1.id,
+    slug: "spot-the-valid-component",
+    title: "Spot the Valid Component",
+    type: "multiple_choice",
+    status: ContentStatus.PUBLISHED,
+    explanation: "Component names must be capitalized, and the function must return the JSX rather than just writing it as a statement.",
+    xpReward: 10,
+    difficulty: 1,
+  },
+});
+
+await prisma.missionSkill.upsert({
+  where: { missionId_skillId: { missionId: reactMission1.id, skillId: skillJsxBasics.id } },
+  update: {},
+  create: { missionId: reactMission1.id, skillId: skillJsxBasics.id },
+});
+
+// ---------- Lesson 2 (React Realm) ----------
+
+const reactLesson2Content = [
+  { type: "heading", text: "Rendering Dynamic Values with Curly Braces" },
+  { type: "paragraph", text: "JSX lets you embed any JavaScript expression directly inside markup by wrapping it in curly braces, so components can render dynamic values instead of only static text." },
+  { type: "vocabulary", term: "Expression", definition: "Any JavaScript snippet that evaluates to a value, like a variable or a function call." },
+  { type: "vocabulary", term: "Interpolation", definition: "Inserting a dynamic value into markup, done in JSX with curly braces {}." },
+  { type: "analogy", text: "Curly braces in JSX are like fill-in-the-blank spots on a form letter - whatever value you drop in there gets printed exactly where the blank is." },
+  { type: "code_example", language: "jsx", code: "const name = \"Ada\";\nfunction Greeting() {\n  return <h1>Hello, {name}!</h1>;\n}" },
+  { type: "line_explanation", lines: [
+    { line: "const name = \"Ada\";", explanation: "Defines a plain JavaScript variable outside the component." },
+    { line: "return <h1>Hello, {name}!</h1>;", explanation: "The curly braces embed the value of name directly into the rendered markup." },
+  ] },
+  { type: "callout", tone: "warning", text: "You can only put expressions inside curly braces, not statements - things like if or for loops won't work directly inside JSX." },
+  { type: "common_mistake", text: "Wrapping the curly-brace expression in quotes, like \"{name}\", which renders literally as text instead of interpolating the variable." },
+  { type: "knowledge_check", question: "What is the correct way to render the value of a variable called price inside JSX?", options: [
+    "\"price\"",
+    "{price}",
+    "(price)",
+    "[price]"
+  ], correctIndex: 1 },
+  { type: "summary", text: "Curly braces {} let you embed any JavaScript expression directly inside JSX markup." },
+];
+
+const reactLesson2 = await prisma.lesson.upsert({
+  where: { moduleId_slug: { moduleId: reactBasics.id, slug: "rendering-dynamic-values" } },
+  update: { title: "Rendering Dynamic Values with Curly Braces", order: 2, status: ContentStatus.PUBLISHED, content: reactLesson2Content },
+  create: { moduleId: reactBasics.id, slug: "rendering-dynamic-values", title: "Rendering Dynamic Values with Curly Braces", order: 2, status: ContentStatus.PUBLISHED, content: reactLesson2Content },
+});
+
+await prisma.lessonSkill.upsert({
+  where: { lessonId_skillId: { lessonId: reactLesson2.id, skillId: skillJsxExpressions.id } },
+  update: {},
+  create: { lessonId: reactLesson2.id, skillId: skillJsxExpressions.id },
+});
+
+const reactMission2 = await prisma.mission.upsert({
+  where: { lessonId_slug: { lessonId: reactLesson2.id, slug: "predict-the-rendered-text" } },
+  update: {
+    title: "Predict the Rendered Text",
+    type: "predict_output",
+    status: ContentStatus.PUBLISHED,
+    starterCode: "const name = \"Ada\";\nfunction Greeting() {\n  return <h1>Hello, {name}!</h1>;\n}",
+    explanation: "The curly braces interpolate the value of name, so the rendered heading reads Hello, Ada!",
+    xpReward: 10,
+    difficulty: 1,
+  },
+  create: {
+    lessonId: reactLesson2.id,
+    slug: "predict-the-rendered-text",
+    title: "Predict the Rendered Text",
+    type: "predict_output",
+    status: ContentStatus.PUBLISHED,
+    starterCode: "const name = \"Ada\";\nfunction Greeting() {\n  return <h1>Hello, {name}!</h1>;\n}",
+    explanation: "The curly braces interpolate the value of name, so the rendered heading reads Hello, Ada!",
+    xpReward: 10,
+    difficulty: 1,
+  },
+});
+
+await prisma.missionSkill.upsert({
+  where: { missionId_skillId: { missionId: reactMission2.id, skillId: skillJsxExpressions.id } },
+  update: {},
+  create: { missionId: reactMission2.id, skillId: skillJsxExpressions.id },
+});
+
+// ---------- Module 2 (React Realm) ----------
+
+const stateAndInteractivity = await prisma.module.upsert({
+  where: { worldId_slug: { worldId: reactRealm.id, slug: "state-and-interactivity" } },
+  update: { title: "State and Interactivity", summary: "Give components memory and respond to user actions.", order: 2, status: ContentStatus.PUBLISHED },
+  create: { worldId: reactRealm.id, slug: "state-and-interactivity", title: "State and Interactivity", summary: "Give components memory and respond to user actions.", order: 2, status: ContentStatus.PUBLISHED },
+});
+
+const skillReactState = await prisma.skill.upsert({
+  where: { slug: "react-state" },
+  update: { name: "State", description: "Data a component manages internally that can change over time and triggers a re-render when updated." },
+  create: { slug: "react-state", name: "State", description: "Data a component manages internally that can change over time and triggers a re-render when updated." },
+});
+
+const skillProps = await prisma.skill.upsert({
+  where: { slug: "props" },
+  update: { name: "Props", description: "Read-only data passed into a component from its parent." },
+  create: { slug: "props", name: "Props", description: "Read-only data passed into a component from its parent." },
+});
+
+const reactLesson3Content = [
+  { type: "heading", text: "Managing State with useState" },
+  { type: "paragraph", text: "The useState hook gives a component its own piece of memory called state, plus a setter function that updates it and triggers a re-render." },
+  { type: "vocabulary", term: "State", definition: "Data a component owns that can change over time; updating it causes React to re-render the component." },
+  { type: "vocabulary", term: "Hook", definition: "A special function (like useState) that lets a function component use React features such as state." },
+  { type: "analogy", text: "State is like a scoreboard at a game - it starts at some value, and every time something scores, the display updates automatically so everyone always sees the current total." },
+  { type: "code_example", language: "jsx", code: "import { useState } from \"react\";\n\nfunction Counter() {\n  const [count, setCount] = useState(0);\n  return <button onClick={() => setCount(count + 1)}>{count}</button>;\n}" },
+  { type: "line_explanation", lines: [
+    { line: "const [count, setCount] = useState(0);", explanation: "Declares a state variable count starting at 0, plus a setCount function to update it." },
+    { line: "return <button onClick={() => setCount(count + 1)}>{count}</button>;", explanation: "Clicking the button calls setCount, which updates count and re-renders the component with the new value." },
+  ] },
+  { type: "callout", tone: "info", text: "Calling the setter function (like setCount) is what tells React to re-render - directly changing a plain variable would not update the screen." },
+  { type: "common_mistake", text: "Trying to update state directly (count = count + 1) instead of calling the setter function returned by useState, which does nothing visible on screen." },
+  { type: "knowledge_check", question: "What does calling setCount(count + 1) do?", options: [
+    "Nothing until the page is refreshed",
+    "Updates count and triggers a re-render",
+    "Only updates count without re-rendering",
+    "Throws an error"
+  ], correctIndex: 1 },
+  { type: "summary", text: "The useState hook gives a component a piece of state and a setter function; calling the setter updates the value and triggers a re-render." },
+];
+
+const reactLesson3 = await prisma.lesson.upsert({
+  where: { moduleId_slug: { moduleId: stateAndInteractivity.id, slug: "managing-state-with-usestate" } },
+  update: { title: "Managing State with useState", order: 1, status: ContentStatus.PUBLISHED, content: reactLesson3Content },
+  create: { moduleId: stateAndInteractivity.id, slug: "managing-state-with-usestate", title: "Managing State with useState", order: 1, status: ContentStatus.PUBLISHED, content: reactLesson3Content },
+});
+
+await prisma.lessonSkill.upsert({
+  where: { lessonId_skillId: { lessonId: reactLesson3.id, skillId: skillReactState.id } },
+  update: {},
+  create: { lessonId: reactLesson3.id, skillId: skillReactState.id },
+});
+
+const reactMission3 = await prisma.mission.upsert({
+  where: { lessonId_slug: { lessonId: reactLesson3.id, slug: "fix-the-broken-counter" } },
+  update: {
+    title: "Fix the Broken Counter",
+    type: "debug_challenge",
+    status: ContentStatus.PUBLISHED,
+    starterCode: "import { useState } from \"react\";\n\nfunction Counter() {\n  const [count, setCount] = useState(0);\n  return <button onClick={() => count + 1}>{count}</button>;\n}",
+    explanation: "The onClick handler must call setCount with the new value; simply computing count + 1 without calling setCount never updates state or re-renders the button.",
+    xpReward: 10,
+    difficulty: 2,
+  },
+  create: {
+    lessonId: reactLesson3.id,
+    slug: "fix-the-broken-counter",
+    title: "Fix the Broken Counter",
+    type: "debug_challenge",
+    status: ContentStatus.PUBLISHED,
+    starterCode: "import { useState } from \"react\";\n\nfunction Counter() {\n  const [count, setCount] = useState(0);\n  return <button onClick={() => count + 1}>{count}</button>;\n}",
+    explanation: "The onClick handler must call setCount with the new value; simply computing count + 1 without calling setCount never updates state or re-renders the button.",
+    xpReward: 10,
+    difficulty: 2,
+  },
+});
+
+await prisma.missionSkill.upsert({
+  where: { missionId_skillId: { missionId: reactMission3.id, skillId: skillReactState.id } },
+  update: {},
+  create: { missionId: reactMission3.id, skillId: skillReactState.id },
+});
+
+// ---------- Lesson 4 (React Realm) ----------
+
+const reactLesson4Content = [
+  { type: "heading", text: "Handling Events and Props" },
+  { type: "paragraph", text: "Props let a parent component pass data into a child component, which the child reads as read-only input, often alongside event handlers that respond to user interaction." },
+  { type: "vocabulary", term: "Props", definition: "Data passed into a component from its parent, read-only from the component's own perspective." },
+  { type: "vocabulary", term: "Event handler", definition: "A function that runs in response to a user interaction, like onClick or onChange." },
+  { type: "analogy", text: "Props are like ingredients handed to a chef by someone else - the chef (component) can use them to cook, but can't reach back and change what's in the delivery truck." },
+  { type: "code_example", language: "jsx", code: "function Welcome(props) {\n  return <h1>Welcome, {props.name}!</h1>;\n}\n\nfunction App() {\n  return <Welcome name=\"Ada\" />;\n}" },
+  { type: "line_explanation", lines: [
+    { line: "function Welcome(props) {", explanation: "Declares a component that receives a props object as its parameter." },
+    { line: "return <h1>Welcome, {props.name}!</h1>;", explanation: "Reads the name property off props and interpolates it into the markup." },
+    { line: "return <Welcome name=\"Ada\" />;", explanation: "Passes name=\"Ada\" as a prop when rendering the Welcome component." },
+  ] },
+  { type: "callout", tone: "warning", text: "Props are read-only - a component should never reassign or mutate props it receives from its parent." },
+  { type: "common_mistake", text: "Trying to modify props directly inside a component (props.name = \"new\") instead of treating them as immutable input." },
+  { type: "knowledge_check", question: "How does a parent component pass a value into a child component?", options: [
+    "Through global variables",
+    "Through props",
+    "By importing the child's state",
+    "Through the URL only"
+  ], correctIndex: 1 },
+  { type: "summary", text: "Props let a parent component pass data into a child component; the child treats props as read-only input." },
+];
+
+const reactLesson4 = await prisma.lesson.upsert({
+  where: { moduleId_slug: { moduleId: stateAndInteractivity.id, slug: "handling-events-and-props" } },
+  update: { title: "Handling Events and Props", order: 2, status: ContentStatus.PUBLISHED, content: reactLesson4Content },
+  create: { moduleId: stateAndInteractivity.id, slug: "handling-events-and-props", title: "Handling Events and Props", order: 2, status: ContentStatus.PUBLISHED, content: reactLesson4Content },
+});
+
+await prisma.lessonSkill.upsert({
+  where: { lessonId_skillId: { lessonId: reactLesson4.id, skillId: skillProps.id } },
+  update: {},
+  create: { lessonId: reactLesson4.id, skillId: skillProps.id },
+});
+
+const reactMission4 = await prisma.mission.upsert({
+  where: { lessonId_slug: { lessonId: reactLesson4.id, slug: "write-a-welcome-component" } },
+  update: {
+    title: "Write a Welcome Component",
+    type: "code_writing",
+    status: ContentStatus.PUBLISHED,
+    explanation: "A valid Welcome component is a capitalized function that takes props and reads props.name to render dynamic content.",
+    xpReward: 10,
+    difficulty: 2,
+  },
+  create: {
+    lessonId: reactLesson4.id,
+    slug: "write-a-welcome-component",
+    title: "Write a Welcome Component",
+    type: "code_writing",
+    status: ContentStatus.PUBLISHED,
+    explanation: "A valid Welcome component is a capitalized function that takes props and reads props.name to render dynamic content.",
+    xpReward: 10,
+    difficulty: 2,
+  },
+});
+
+await prisma.missionSkill.upsert({
+  where: { missionId_skillId: { missionId: reactMission4.id, skillId: skillProps.id } },
+  update: {},
+  create: { missionId: reactMission4.id, skillId: skillProps.id },
+});
+
 // ---------- Mission prompts, options, and grading specs ----------
 type MissionMeta = {
   prompt: string;
@@ -1542,7 +1843,24 @@ type MissionMeta = {
 };
 
 const MISSION_META: Record<string, MissionMeta> = {
-  "identify-the-request": {
+    "spot-the-valid-component": {
+    prompt: "Which of these is a valid React component that correctly returns JSX?",
+    options: ["function greeting() { return <h1>Hi</h1>; }", "function Greeting() { return <h1>Hi</h1>; }", "function Greeting() { <h1>Hi</h1> }", "const greeting = <h1>Hi</h1>"],
+    test: { checkType: "mc", correctIndex: 1 },
+  },
+  "predict-the-rendered-text": {
+    prompt: "If this component renders, what text appears inside the <h1> element?",
+    test: { checkType: "text_exact", answer: "Hello, Ada!" },
+  },
+  "fix-the-broken-counter": {
+    prompt: "Fix the button's onClick handler so clicking it actually increments the counter, then submit.",
+    test: { checkType: "regex_all", patterns: ["setCount\\(count\\s*\\+\\s*1\\)"] },
+  },
+  "write-a-welcome-component": {
+    prompt: "Write a component named Welcome that accepts a props parameter and returns an <h1> element rendering \"Welcome, \" followed by props.name, then submit.",
+    test: { checkType: "regex_all", patterns: ["function\\s+Welcome\\s*\\(\\s*props\\s*\\)", "props\\.name"] },
+  },
+"identify-the-request": {
     prompt: "Which HTTP method should you use to fetch data from a server without changing anything, and without sending a request body?",
     options: ["GET", "POST", "PUT", "DELETE"],
     test: { checkType: "mc", correctIndex: 0 },
@@ -1644,7 +1962,7 @@ for (const [slug, meta] of Object.entries(MISSION_META)) {
   });
 }
 
-console.log("Seed complete: worlds, Web Foundations (2 modules, 4 lessons, 4 missions), HTML Harbor (2 modules, 4 lessons, 4 missions), CSS City (2 modules, 4 lessons, 4 missions), JavaScript Jungle (2 modules, 4 lessons, 4 missions), and TypeScript Tower (2 modules, 4 lessons, 4 missions) upserted.");
+console.log("Seed complete: worlds, Web Foundations (2 modules, 4 lessons, 4 missions), HTML Harbor (2 modules, 4 lessons, 4 missions), CSS City (2 modules, 4 lessons, 4 missions), JavaScript Jungle (2 modules, 4 lessons, 4 missions), TypeScript Tower (2 modules, 4 lessons, 4 missions), and React Realm (2 modules, 4 lessons, 4 missions) upserted.");
 }
 
 main()
