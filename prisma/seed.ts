@@ -1835,6 +1835,335 @@ await prisma.missionSkill.upsert({
   create: { missionId: reactMission4.id, skillId: skillProps.id },
 });
 
+
+// ---------- World 7: Next.js Network ----------
+const nextjsNetwork = await prisma.world.findUniqueOrThrow({ where: { slug: "nextjs-network" } });
+
+const appRouterBasics = await prisma.module.upsert({
+where: { worldId_slug: { worldId: nextjsNetwork.id, slug: "app-router-basics" } },
+update: { title: "App Router Basics", summary: "Understand how folders and files map to real URLs.", order: 1, status: ContentStatus.PUBLISHED },
+create: { worldId: nextjsNetwork.id, slug: "app-router-basics", title: "App Router Basics", summary: "Understand how folders and files map to real URLs.", order: 1, status: ContentStatus.PUBLISHED },
+});
+
+const skillFileRouting = await prisma.skill.upsert({
+where: { slug: "file-based-routing" },
+update: { name: "File-based routing", description: "Mapping folders and page.tsx files to real URL routes." },
+create: { slug: "file-based-routing", name: "File-based routing", description: "Mapping folders and page.tsx files to real URL routes." },
+});
+
+const skillServerClientComponents = await prisma.skill.upsert({
+where: { slug: "server-and-client-components" },
+update: { name: "Server and client components", description: "Understanding which components render on the server versus the browser." },
+create: { slug: "server-and-client-components", name: "Server and client components", description: "Understanding which components render on the server versus the browser." },
+});
+
+const nextjsLesson1Content = [
+{ type: "heading", text: "Routing with the App Router" },
+{ type: "paragraph", text: "In the Next.js App Router, folders inside src/app map directly to URL paths, and a page.tsx file inside a folder is what actually renders that route." },
+{ type: "vocabulary", term: "Route segment", definition: "A single folder inside src/app that contributes one piece of a URL path." },
+{ type: "vocabulary", term: "page.tsx", definition: "The special file inside a route folder whose export is rendered when that route is visited." },
+{ type: "analogy", text: "The app folder is like a building directory: each folder name is a floor, and the page.tsx file inside is the actual room you arrive in when you go there." },
+{ type: "code_example", language: "text", code: "src/app/
+ about/
+ page.tsx
+ blog/
+ [slug]/
+ page.tsx" },
+{ type: "line_explanation", lines: [
+{ line: "src/app/about/page.tsx", explanation: "Renders when a visitor requests the /about URL." },
+{ line: "src/app/blog/[slug]/page.tsx", explanation: "A dynamic route segment - [slug] matches any value, like /blog/hello-world." },
+] },
+{ type: "callout", tone: "info", text: "Folders without a page.tsx file do not create a visitable route on their own - they just group related files together." },
+{ type: "common_mistake", text: "Beginners sometimes expect any file inside a route folder to be rendered. Only the page.tsx file (or special files like layout.tsx) has special routing meaning." },
+{ type: "knowledge_check", question: "What URL does src/app/about/page.tsx correspond to?", options: [
+"/about",
+"/app/about",
+"/src/about",
+"/page"
+], correctIndex: 0 },
+{ type: "summary", text: "Folders inside src/app become URL segments, and the page.tsx file inside a folder is what actually renders when that route is visited." },
+];
+
+const nextjsLesson1 = await prisma.lesson.upsert({
+where: { moduleId_slug: { moduleId: appRouterBasics.id, slug: "routing-with-the-app-router" } },
+update: { title: "Routing with the App Router", order: 1, status: ContentStatus.PUBLISHED, content: nextjsLesson1Content },
+create: { moduleId: appRouterBasics.id, slug: "routing-with-the-app-router", title: "Routing with the App Router", order: 1, status: ContentStatus.PUBLISHED, content: nextjsLesson1Content },
+});
+
+await prisma.lessonSkill.upsert({
+where: { lessonId_skillId: { lessonId: nextjsLesson1.id, skillId: skillFileRouting.id } },
+update: {},
+create: { lessonId: nextjsLesson1.id, skillId: skillFileRouting.id },
+});
+
+const nextjsMission1 = await prisma.mission.upsert({
+where: { lessonId_slug: { lessonId: nextjsLesson1.id, slug: "predict-the-route" } },
+update: {
+title: "Predict the Route",
+type: "predict_output",
+status: ContentStatus.PUBLISHED,
+starterCode: "src/app/
+ about/
+ page.tsx",
+explanation: "The about folder inside src/app becomes the /about URL segment, and page.tsx is what renders there.",
+xpReward: 10,
+difficulty: 1,
+},
+create: {
+lessonId: nextjsLesson1.id,
+slug: "predict-the-route",
+title: "Predict the Route",
+type: "predict_output",
+status: ContentStatus.PUBLISHED,
+starterCode: "src/app/
+ about/
+ page.tsx",
+explanation: "The about folder inside src/app becomes the /about URL segment, and page.tsx is what renders there.",
+xpReward: 10,
+difficulty: 1,
+},
+});
+
+await prisma.missionSkill.upsert({
+where: { missionId_skillId: { missionId: nextjsMission1.id, skillId: skillFileRouting.id } },
+update: {},
+create: { missionId: nextjsMission1.id, skillId: skillFileRouting.id },
+});
+
+// ---------- Lesson 2 (Next.js Network) ----------
+const nextjsLesson2Content = [
+{ type: "heading", text: "Server and Client Components" },
+{ type: "paragraph", text: "In the App Router, every component is a Server Component by default, rendering only on the server. Adding a "use client" directive at the top of a file switches it to a Client Component that can run in the browser and use interactive features." },
+{ type: "vocabulary", term: "Server Component", definition: "A component that renders on the server and sends only HTML to the browser, with no client-side JavaScript for that component." },
+{ type: "vocabulary", term: "Client Component", definition: "A component marked with "use client" that runs in the browser and can use hooks like useState and event handlers." },
+{ type: "analogy", text: "A Server Component is like a pre-cooked meal delivered ready to eat; a Client Component is like a meal kit that still needs some assembly (JavaScript) once it arrives in the browser." },
+{ type: "code_example", language: "jsx", code: ""use client";
+
+import { useState } from "react";
+
+function Counter() {
+ const [count, setCount] = useState(0);
+ return <button onClick={() => setCount(count + 1)}>{count}</button>;
+}" },
+{ type: "line_explanation", lines: [
+{ line: ""use client";", explanation: "Must be the very first line of the file to mark every export below as a Client Component." },
+{ line: "const [count, setCount] = useState(0);", explanation: "useState only works in Client Components, since it requires interactivity in the browser." },
+] },
+{ type: "callout", tone: "warning", text: "Hooks like useState and useEffect, along with browser event handlers like onClick, only work inside Client Components." },
+{ type: "common_mistake", text: "Beginners often try to use useState in a component without the "use client" directive, which causes a build or runtime error since Server Components cannot hold browser-side state." },
+{ type: "knowledge_check", question: "Which directive marks a file as a Client Component?", options: [
+""use client";",
+""use server";",
+""use strict";",
+"import client;"
+], correctIndex: 0 },
+{ type: "summary", text: "Components are Server Components by default in the App Router. Adding "use client" as the first line switches a file to a Client Component that can use hooks and browser interactivity." },
+];
+
+const nextjsLesson2 = await prisma.lesson.upsert({
+where: { moduleId_slug: { moduleId: appRouterBasics.id, slug: "server-and-client-components" } },
+update: { title: "Server and Client Components", order: 2, status: ContentStatus.PUBLISHED, content: nextjsLesson2Content },
+create: { moduleId: appRouterBasics.id, slug: "server-and-client-components", title: "Server and Client Components", order: 2, status: ContentStatus.PUBLISHED, content: nextjsLesson2Content },
+});
+
+await prisma.lessonSkill.upsert({
+where: { lessonId_skillId: { lessonId: nextjsLesson2.id, skillId: skillServerClientComponents.id } },
+update: {},
+create: { lessonId: nextjsLesson2.id, skillId: skillServerClientComponents.id },
+});
+
+const nextjsMission2 = await prisma.mission.upsert({
+where: { lessonId_slug: { lessonId: nextjsLesson2.id, slug: "spot-the-client-directive" } },
+update: {
+title: "Spot the Client Directive",
+type: "multiple_choice",
+status: ContentStatus.PUBLISHED,
+explanation: ""use client" placed as the first line of a file marks every export in that file as a Client Component.",
+xpReward: 10,
+difficulty: 1,
+},
+create: {
+lessonId: nextjsLesson2.id,
+slug: "spot-the-client-directive",
+title: "Spot the Client Directive",
+type: "multiple_choice",
+status: ContentStatus.PUBLISHED,
+explanation: ""use client" placed as the first line of a file marks every export in that file as a Client Component.",
+xpReward: 10,
+difficulty: 1,
+},
+});
+
+await prisma.missionSkill.upsert({
+where: { missionId_skillId: { missionId: nextjsMission2.id, skillId: skillServerClientComponents.id } },
+update: {},
+create: { missionId: nextjsMission2.id, skillId: skillServerClientComponents.id },
+});
+
+// ---------- Module 2 (Next.js Network): Navigation and Server Actions ----------
+const navigationAndActions = await prisma.module.upsert({
+where: { worldId_slug: { worldId: nextjsNetwork.id, slug: "navigation-and-server-actions" } },
+update: { title: "Navigation and Server Actions", summary: "Link pages together and run real server-side logic from the client.", order: 2, status: ContentStatus.PUBLISHED },
+create: { worldId: nextjsNetwork.id, slug: "navigation-and-server-actions", title: "Navigation and Server Actions", summary: "Link pages together and run real server-side logic from the client.", order: 2, status: ContentStatus.PUBLISHED },
+});
+
+const skillClientNavigation = await prisma.skill.upsert({
+where: { slug: "client-side-navigation" },
+update: { name: "Client-side navigation", description: "Linking between pages without a full page reload using the Link component." },
+create: { slug: "client-side-navigation", name: "Client-side navigation", description: "Linking between pages without a full page reload using the Link component." },
+});
+
+const skillServerActions = await prisma.skill.upsert({
+where: { slug: "server-actions" },
+update: { name: "Server actions", description: "Writing server-side functions that client components can call directly." },
+create: { slug: "server-actions", name: "Server actions", description: "Writing server-side functions that client components can call directly." },
+});
+
+// ---------- Lesson 3 (Next.js Network) ----------
+const nextjsLesson3Content = [
+{ type: "heading", text: "Linking Between Pages" },
+{ type: "paragraph", text: "The Link component from next/link lets visitors navigate between pages without a full page reload, keeping the app feeling fast by only updating what actually changed." },
+{ type: "vocabulary", term: "Link component", definition: "A component from next/link that renders a real anchor tag but navigates client-side instead of triggering a full page reload." },
+{ type: "vocabulary", term: "Client-side navigation", definition: "Moving between pages by updating the page in place with JavaScript, instead of requesting an entirely new HTML document." },
+{ type: "analogy", text: "Using a plain <a> tag is like leaving a building and walking to a new one from scratch every time; Link is like taking an elevator between floors of the same building - faster, because most of the structure stays in place." },
+{ type: "code_example", language: "jsx", code: "import Link from "next/link";
+
+function Nav() {
+ return <Link href="/about">About</Link>;
+}" },
+{ type: "line_explanation", lines: [
+{ line: "import Link from "next/link";", explanation: "Imports the Link component used for client-side navigation." },
+{ line: "return <Link href="/about">About</Link>;", explanation: "Renders a link to /about that navigates without a full page reload." },
+] },
+{ type: "callout", tone: "info", text: "Link still renders a real <a> tag under the hood, so it keeps working correctly for accessibility, right-click, and opening in a new tab." },
+{ type: "common_mistake", text: "Beginners often use a plain <a href="..."> for internal navigation, which causes a full page reload and loses the performance benefits Link provides." },
+{ type: "knowledge_check", question: "What is the main benefit of using Link instead of a plain <a> tag for internal navigation?", options: [
+"It looks different from a normal link",
+"It navigates client-side without a full page reload",
+"It only works on the homepage",
+"It disables all styling"
+], correctIndex: 1 },
+{ type: "summary", text: "The Link component enables fast, client-side navigation between pages, avoiding the full page reload a plain anchor tag would trigger." },
+];
+
+const nextjsLesson3 = await prisma.lesson.upsert({
+where: { moduleId_slug: { moduleId: navigationAndActions.id, slug: "linking-between-pages" } },
+update: { title: "Linking Between Pages", order: 1, status: ContentStatus.PUBLISHED, content: nextjsLesson3Content },
+create: { moduleId: navigationAndActions.id, slug: "linking-between-pages", title: "Linking Between Pages", order: 1, status: ContentStatus.PUBLISHED, content: nextjsLesson3Content },
+});
+
+await prisma.lessonSkill.upsert({
+where: { lessonId_skillId: { lessonId: nextjsLesson3.id, skillId: skillClientNavigation.id } },
+update: {},
+create: { lessonId: nextjsLesson3.id, skillId: skillClientNavigation.id },
+});
+
+const nextjsMission3 = await prisma.mission.upsert({
+where: { lessonId_slug: { lessonId: nextjsLesson3.id, slug: "fix-the-navigation-link" } },
+update: {
+title: "Fix the Navigation Link",
+type: "debug_challenge",
+status: ContentStatus.PUBLISHED,
+starterCode: "function Nav() {
+ return <a href="/about">About</a>;
+}",
+explanation: "Replacing the plain <a> tag with the Link component from next/link (imported at the top of the file) enables client-side navigation.",
+xpReward: 10,
+difficulty: 2,
+},
+create: {
+lessonId: nextjsLesson3.id,
+slug: "fix-the-navigation-link",
+title: "Fix the Navigation Link",
+type: "debug_challenge",
+status: ContentStatus.PUBLISHED,
+starterCode: "function Nav() {
+ return <a href="/about">About</a>;
+}",
+explanation: "Replacing the plain <a> tag with the Link component from next/link (imported at the top of the file) enables client-side navigation.",
+xpReward: 10,
+difficulty: 2,
+},
+});
+
+await prisma.missionSkill.upsert({
+where: { missionId_skillId: { missionId: nextjsMission3.id, skillId: skillClientNavigation.id } },
+update: {},
+create: { missionId: nextjsMission3.id, skillId: skillClientNavigation.id },
+});
+
+// ---------- Lesson 4 (Next.js Network) ----------
+const nextjsLesson4Content = [
+{ type: "heading", text: "Writing Server Actions" },
+{ type: "paragraph", text: "A Server Action is a function marked with "use server" that runs only on the server, but can be called directly from a client component, such as when a form is submitted." },
+{ type: "vocabulary", term: "Server Action", definition: "A function marked with "use server" that executes on the server but can be invoked directly from client-side code." },
+{ type: "vocabulary", term: "use server", definition: "A directive placed at the top of a function or file marking it as a Server Action." },
+{ type: "analogy", text: "A Server Action is like handing a sealed envelope to a courier: the client never sees or runs the logic inside, it just gets a result back once the server has processed it." },
+{ type: "code_example", language: "typescript", code: ""use server";
+
+async function saveName(name: string) {
+ console.log("Saving:", name);
+}" },
+{ type: "line_explanation", lines: [
+{ line: ""use server";", explanation: "Marks this function as a Server Action, ensuring it only ever runs on the server." },
+{ line: "async function saveName(name: string) {", explanation: "Server Actions are typically declared as async functions, since they often perform I/O like database writes." },
+] },
+{ type: "callout", tone: "info", text: "This exact application uses real Server Actions, like submitMissionAttempt, to validate and grade mission submissions safely on the server." },
+{ type: "common_mistake", text: "Beginners sometimes assume Server Action code also runs in the browser. It never does - only the function's result is sent back to the client." },
+{ type: "knowledge_check", question: "Where does the code inside a Server Action actually execute?", options: [
+"In the browser only",
+"On the server only",
+"On both the browser and server simultaneously",
+"It never executes"
+], correctIndex: 1 },
+{ type: "summary", text: "A Server Action is a "use server" function that runs exclusively on the server while remaining directly callable from client components." },
+];
+
+const nextjsLesson4 = await prisma.lesson.upsert({
+where: { moduleId_slug: { moduleId: navigationAndActions.id, slug: "writing-server-actions" } },
+update: { title: "Writing Server Actions", order: 2, status: ContentStatus.PUBLISHED, content: nextjsLesson4Content },
+create: { moduleId: navigationAndActions.id, slug: "writing-server-actions", title: "Writing Server Actions", order: 2, status: ContentStatus.PUBLISHED, content: nextjsLesson4Content },
+});
+
+await prisma.lessonSkill.upsert({
+where: { lessonId_skillId: { lessonId: nextjsLesson4.id, skillId: skillServerActions.id } },
+update: {},
+create: { lessonId: nextjsLesson4.id, skillId: skillServerActions.id },
+});
+
+const nextjsMission4 = await prisma.mission.upsert({
+where: { lessonId_slug: { lessonId: nextjsLesson4.id, slug: "write-a-server-action" } },
+update: {
+title: "Write a Server Action",
+type: "code_writing",
+status: ContentStatus.PUBLISHED,
+starterCode: "// Write a Server Action function named saveName that takes
+// a single string parameter called name and logs it.
+",
+explanation: "A correct Server Action starts with "use server"; and declares an async function, such as: "use server"; async function saveName(name: string) { console.log(name); }",
+xpReward: 10,
+difficulty: 2,
+},
+create: {
+lessonId: nextjsLesson4.id,
+slug: "write-a-server-action",
+title: "Write a Server Action",
+type: "code_writing",
+status: ContentStatus.PUBLISHED,
+starterCode: "// Write a Server Action function named saveName that takes
+// a single string parameter called name and logs it.
+",
+explanation: "A correct Server Action starts with "use server"; and declares an async function, such as: "use server"; async function saveName(name: string) { console.log(name); }",
+xpReward: 10,
+difficulty: 2,
+},
+});
+
+await prisma.missionSkill.upsert({
+where: { missionId_skillId: { missionId: nextjsMission4.id, skillId: skillServerActions.id } },
+update: {},
+create: { missionId: nextjsMission4.id, skillId: skillServerActions.id },
+});
 // ---------- Mission prompts, options, and grading specs ----------
 type MissionMeta = {
   prompt: string;
@@ -1946,6 +2275,25 @@ test: { checkType: "regex_all", patterns: ["interface\\s+User", "name\\s*:\\s*st
     prompt: "Fix the loop so it prints 0 through 4 and terminates, then submit. Your code will actually run.",
     test: { checkType: "js_run", expectedLogs: ["0", "1", "2", "3", "4"] },
   },
+  
+"predict-the-route": {
+prompt: "Given the folder structure above, what URL would render src/app/about/page.tsx?",
+test: { checkType: "text_exact", answer: "/about" },
+},
+"spot-the-client-directive": {
+prompt: "Which directive marks a file as a Client Component?",
+options: ["\"use client\";", "\"use server\";", "\"use strict\";", "import client;"],
+test: { checkType: "mc", correctIndex: 0 },
+},
+"fix-the-navigation-link": {
+prompt: "Replace the plain anchor tag with the Link component from next/link so this link navigates client-side, then submit.",
+test: { checkType: "regex_all", patterns: ["<Link", "href=\"/about\""] },
+},
+"write-a-server-action": {
+prompt: "Write a Server Action function named saveName that takes a string parameter called name and logs it, then submit.",
+test: { checkType: "regex_all", patterns: ["\"use server\"", "function\\s+saveName"] },
+},
+
 };
 
 for (const [slug, meta] of Object.entries(MISSION_META)) {
@@ -1962,7 +2310,7 @@ for (const [slug, meta] of Object.entries(MISSION_META)) {
   });
 }
 
-console.log("Seed complete: worlds, Web Foundations (2 modules, 4 lessons, 4 missions), HTML Harbor (2 modules, 4 lessons, 4 missions), CSS City (2 modules, 4 lessons, 4 missions), JavaScript Jungle (2 modules, 4 lessons, 4 missions), TypeScript Tower (2 modules, 4 lessons, 4 missions), and React Realm (2 modules, 4 lessons, 4 missions) upserted.");
+console.log("Seed complete: worlds, Web Foundations (2 modules, 4 lessons, 4 missions), HTML Harbor (2 modules, 4 lessons, 4 missions), CSS City (2 modules, 4 lessons, 4 missions), JavaScript Jungle (2 modules, 4 lessons, 4 missions), TypeScript Tower (2 modules, 4 lessons, 4 missions), React Realm (2 modules, 4 lessons, 4 missions), and Next.js Network (2 modules, 4 lessons, 4 missions) upserted.");
 }
 
 main()
