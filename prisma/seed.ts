@@ -24,7 +24,7 @@ status: ContentStatus;
 { slug: "html-harbor", title: "HTML Harbor", summary: "Structure content with HTML.", order: 2, status: ContentStatus.PUBLISHED },
 { slug: "css-city", title: "CSS City", summary: "Style and layout with CSS.", order: 3, status: ContentStatus.PUBLISHED },
 { slug: "javascript-jungle", title: "JavaScript Jungle", summary: "Programming fundamentals with JavaScript.", order: 4, status: ContentStatus.PUBLISHED },
-{ slug: "typescript-tower", title: "TypeScript Tower", summary: "Add types to your JavaScript.", order: 5, status: ContentStatus.DRAFT },
+{ slug: "typescript-tower", title: "TypeScript Tower", summary: "Add types to your JavaScript.", order: 5, status: ContentStatus.PUBLISHED },
 { slug: "react-realm", title: "React Realm", summary: "Build interactive UIs with React.", order: 6, status: ContentStatus.DRAFT },
 { slug: "nextjs-network", title: "Next.js Network", summary: "Full-stack React with Next.js.", order: 7, status: ContentStatus.DRAFT },
 { slug: "api-headquarters", title: "API Headquarters", summary: "Requests, responses, and REST.", order: 8, status: ContentStatus.DRAFT },
@@ -1234,6 +1234,306 @@ create: { missionId: jsMission4.id, skillId: skillLoops.id },
 });
 
 
+// ---------- World 5: TypeScript Tower ----------
+const typescriptTower = await prisma.world.findUniqueOrThrow({ where: { slug: "typescript-tower" } });
+
+const typeBasics = await prisma.module.upsert({
+where: { worldId_slug: { worldId: typescriptTower.id, slug: "type-basics" } },
+update: { title: "Type Basics", summary: "Annotate values so TypeScript can catch mistakes before you run your code.", order: 1, status: ContentStatus.PUBLISHED },
+create: { worldId: typescriptTower.id, slug: "type-basics", title: "Type Basics", summary: "Annotate values so TypeScript can catch mistakes before you run your code.", order: 1, status: ContentStatus.PUBLISHED },
+});
+
+const skillBasicTypes = await prisma.skill.upsert({
+where: { slug: "basic-types" },
+update: { name: "Basic types", description: "Annotating variables with primitive types like string, number, and boolean." },
+create: { slug: "basic-types", name: "Basic types", description: "Annotating variables with primitive types like string, number, and boolean." },
+});
+
+const skillTypeInference = await prisma.skill.upsert({
+where: { slug: "type-inference" },
+update: { name: "Type inference", description: "Understanding when TypeScript can infer a type without an explicit annotation." },
+create: { slug: "type-inference", name: "Type inference", description: "Understanding when TypeScript can infer a type without an explicit annotation." },
+});
+
+// ---------- Lesson 1 (TypeScript Tower) ----------
+const tsLesson1Content = [
+{ type: "heading", text: "Annotating Variables with Types" },
+{ type: "paragraph", text: "TypeScript adds type annotations on top of ordinary JavaScript, letting you describe what kind of value a variable should hold so mistakes are caught before the code ever runs." },
+{ type: "vocabulary", term: "Type annotation", definition: "Extra syntax like \": string\" that tells TypeScript what kind of value a variable should hold." },
+{ type: "vocabulary", term: "Static typing", definition: "Checking types before the code runs, rather than only while it runs." },
+{ type: "analogy", text: "Type annotations are like labeling drawers in a toolbox: everyone knows a screwdriver drawer should hold screwdrivers, not nails, and it's obvious immediately if something doesn't belong." },
+{ type: "code_example", language: "typescript", code: "let username: string = \"Ada\";\nlet age: number = 32;\nlet isAdmin: boolean = false;" },
+{ type: "line_explanation", lines: [
+{ line: "let username: string = \"Ada\";", explanation: ": string tells TypeScript this variable can only ever hold text." },
+{ line: "let age: number = 32;", explanation: ": number restricts this variable to numeric values." },
+{ line: "let isAdmin: boolean = false;", explanation: ": boolean restricts this variable to true or false." },
+] },
+{ type: "callout", tone: "info", text: "TypeScript is a superset of JavaScript - any valid JavaScript file is already valid TypeScript, with optional type annotations layered on top." },
+{ type: "common_mistake", text: "Beginners sometimes try to assign a value of the wrong type, like assigning a string to a variable annotated as number - TypeScript flags this immediately as a compile-time error rather than waiting for it to break the running program." },
+{ type: "knowledge_check", question: "What is the main benefit of adding type annotations in TypeScript?", options: [
+"It makes code run faster",
+"It catches type-related mistakes before the code runs",
+"It replaces the need for testing entirely",
+"It is required for JavaScript to run in a browser"
+], correctIndex: 1 },
+{ type: "summary", text: "Type annotations describe what kind of value a variable should hold, letting TypeScript catch mismatches before the code ever runs." },
+];
+
+const tsLesson1 = await prisma.lesson.upsert({
+where: { moduleId_slug: { moduleId: typeBasics.id, slug: "annotating-variables-with-types" } },
+update: { title: "Annotating Variables with Types", order: 1, status: ContentStatus.PUBLISHED, content: tsLesson1Content },
+create: { moduleId: typeBasics.id, slug: "annotating-variables-with-types", title: "Annotating Variables with Types", order: 1, status: ContentStatus.PUBLISHED, content: tsLesson1Content },
+});
+
+await prisma.lessonSkill.upsert({
+where: { lessonId_skillId: { lessonId: tsLesson1.id, skillId: skillBasicTypes.id } },
+update: {},
+create: { lessonId: tsLesson1.id, skillId: skillBasicTypes.id },
+});
+
+const tsMission1 = await prisma.mission.upsert({
+where: { lessonId_slug: { lessonId: tsLesson1.id, slug: "spot-the-valid-annotation" } },
+update: {
+title: "Spot the Valid Annotation",
+type: "multiple_choice",
+status: ContentStatus.PUBLISHED,
+explanation: "The string type restricts a variable so it can only ever hold text values.",
+xpReward: 10,
+difficulty: 1,
+},
+create: {
+lessonId: tsLesson1.id,
+slug: "spot-the-valid-annotation",
+title: "Spot the Valid Annotation",
+type: "multiple_choice",
+status: ContentStatus.PUBLISHED,
+explanation: "The string type restricts a variable so it can only ever hold text values.",
+xpReward: 10,
+difficulty: 1,
+},
+});
+
+await prisma.missionSkill.upsert({
+where: { missionId_skillId: { missionId: tsMission1.id, skillId: skillBasicTypes.id } },
+update: {},
+create: { missionId: tsMission1.id, skillId: skillBasicTypes.id },
+});
+// ---------- Lesson 2 (TypeScript Tower) ----------
+const tsLesson2Content = [
+{ type: "heading", text: "Type Inference" },
+{ type: "paragraph", text: "TypeScript can often figure out a variable's type automatically from its initial value, without needing an explicit annotation." },
+{ type: "vocabulary", term: "Type inference", definition: "TypeScript's ability to automatically determine a variable's type from the value assigned to it." },
+{ type: "vocabulary", term: "Explicit annotation", definition: "A type written directly by the developer, such as \": number\", instead of relying on inference." },
+{ type: "analogy", text: "Type inference is like a librarian who can tell a book is a mystery novel just by glancing at its cover, without needing a label that spells it out." },
+{ type: "code_example", language: "typescript", code: "let count = 5;\nlet label = \"Total\";\ncount = \"five\";" },
+{ type: "line_explanation", lines: [
+{ line: "let count = 5;", explanation: "TypeScript infers count's type as number from the initial value, with no annotation needed." },
+{ line: "let label = \"Total\";", explanation: "TypeScript infers label's type as string." },
+{ line: "count = \"five\";", explanation: "This reassignment is a type error, since TypeScript inferred count as a number." },
+] },
+{ type: "callout", tone: "warning", text: "Inference only locks in a type from the first value assigned - reassigning a variable to a different type afterward is treated as a compile-time error." },
+{ type: "common_mistake", text: "Beginners sometimes think a variable without an explicit annotation has no type at all. In reality, TypeScript still infers and enforces a type behind the scenes." },
+{ type: "knowledge_check", question: "What type does TypeScript infer for \"let count = 5;\"?", options: [
+"string",
+"boolean",
+"number",
+"any"
+], correctIndex: 2 },
+{ type: "summary", text: "TypeScript infers a variable's type from its initial value when no annotation is written, and still enforces that inferred type afterward." },
+];
+
+const tsLesson2 = await prisma.lesson.upsert({
+where: { moduleId_slug: { moduleId: typeBasics.id, slug: "type-inference" } },
+update: { title: "Type Inference", order: 2, status: ContentStatus.PUBLISHED, content: tsLesson2Content },
+create: { moduleId: typeBasics.id, slug: "type-inference", title: "Type Inference", order: 2, status: ContentStatus.PUBLISHED, content: tsLesson2Content },
+});
+
+await prisma.lessonSkill.upsert({
+where: { lessonId_skillId: { lessonId: tsLesson2.id, skillId: skillTypeInference.id } },
+update: {},
+create: { lessonId: tsLesson2.id, skillId: skillTypeInference.id },
+});
+
+const tsMission2 = await prisma.mission.upsert({
+where: { lessonId_slug: { lessonId: tsLesson2.id, slug: "predict-the-inferred-type" } },
+update: {
+title: "Predict the Inferred Type",
+type: "predict_output",
+status: ContentStatus.PUBLISHED,
+starterCode: "let count = 5;\nlet label = \"Total\";\ncount = \"five\";",
+explanation: "count is initialized with the number 5, so TypeScript infers its type as number and later flags the reassignment to a string as an error.",
+xpReward: 10,
+difficulty: 1,
+},
+create: {
+lessonId: tsLesson2.id,
+slug: "predict-the-inferred-type",
+title: "Predict the Inferred Type",
+type: "predict_output",
+status: ContentStatus.PUBLISHED,
+starterCode: "let count = 5;\nlet label = \"Total\";\ncount = \"five\";",
+explanation: "count is initialized with the number 5, so TypeScript infers its type as number and later flags the reassignment to a string as an error.",
+xpReward: 10,
+difficulty: 1,
+},
+});
+
+await prisma.missionSkill.upsert({
+where: { missionId_skillId: { missionId: tsMission2.id, skillId: skillTypeInference.id } },
+update: {},
+create: { missionId: tsMission2.id, skillId: skillTypeInference.id },
+});
+
+// ---------- Module 2 (TypeScript Tower): Functions and Interfaces ----------
+const functionsAndInterfaces = await prisma.module.upsert({
+where: { worldId_slug: { worldId: typescriptTower.id, slug: "functions-and-interfaces" } },
+update: { title: "Functions and Interfaces", summary: "Add types to functions and describe the shape of objects.", order: 2, status: ContentStatus.PUBLISHED },
+create: { worldId: typescriptTower.id, slug: "functions-and-interfaces", title: "Functions and Interfaces", summary: "Add types to functions and describe the shape of objects.", order: 2, status: ContentStatus.PUBLISHED },
+});
+
+const skillTypedFunctions = await prisma.skill.upsert({
+where: { slug: "typed-functions" },
+update: { name: "Typed functions", description: "Adding parameter and return types to functions." },
+create: { slug: "typed-functions", name: "Typed functions", description: "Adding parameter and return types to functions." },
+});
+
+const skillInterfaces = await prisma.skill.upsert({
+where: { slug: "interfaces" },
+update: { name: "Interfaces", description: "Describing the shape of objects with interfaces." },
+create: { slug: "interfaces", name: "Interfaces", description: "Describing the shape of objects with interfaces." },
+});
+// ---------- Lesson 3 (TypeScript Tower) ----------
+const tsLesson3Content = [
+{ type: "heading", text: "Typing Function Parameters and Returns" },
+{ type: "paragraph", text: "Functions can have types on both their parameters and their return value, so TypeScript catches calls made with the wrong argument types before the code runs." },
+{ type: "vocabulary", term: "Parameter type", definition: "A type annotation on a function parameter that restricts what kind of arguments it accepts." },
+{ type: "vocabulary", term: "Return type", definition: "A type annotation describing what kind of value a function returns." },
+{ type: "analogy", text: "Typing a function is like posting rules at the entrance to a ride: only visitors that meet the requirements (parameter types) are allowed in, and everyone knows what to expect when they come out (the return type)." },
+{ type: "code_example", language: "typescript", code: "function add(a: number, b: number): number {\n return a + b;\n}\n\nadd(2, 3);" },
+{ type: "line_explanation", lines: [
+{ line: "function add(a: number, b: number): number {", explanation: "Both parameters must be numbers, and the function promises to return a number." },
+{ line: "return a + b;", explanation: "Adds the two numbers and returns the sum." },
+{ line: "add(2, 3);", explanation: "A valid call, since both arguments are numbers." },
+] },
+{ type: "callout", tone: "info", text: "If a function is called with the wrong argument type, such as passing a string where add expects a number, TypeScript reports an error before the code ever runs." },
+{ type: "common_mistake", text: "Beginners sometimes call a typed function with the wrong kind of value, such as passing a string where a number is expected, and are surprised when TypeScript rejects it immediately." },
+{ type: "knowledge_check", question: "In function add(a: number, b: number): number, what does the final \": number\" describe?", options: [
+"The type of the first parameter",
+"The type of the second parameter",
+"The type of the value the function returns",
+"The name of the function"
+], correctIndex: 2 },
+{ type: "summary", text: "Typing a function's parameters and return value lets TypeScript check both what goes in and what comes out, catching mismatched calls immediately." },
+];
+
+const tsLesson3 = await prisma.lesson.upsert({
+where: { moduleId_slug: { moduleId: functionsAndInterfaces.id, slug: "typing-function-parameters-and-returns" } },
+update: { title: "Typing Function Parameters and Returns", order: 1, status: ContentStatus.PUBLISHED, content: tsLesson3Content },
+create: { moduleId: functionsAndInterfaces.id, slug: "typing-function-parameters-and-returns", title: "Typing Function Parameters and Returns", order: 1, status: ContentStatus.PUBLISHED, content: tsLesson3Content },
+});
+
+await prisma.lessonSkill.upsert({
+where: { lessonId_skillId: { lessonId: tsLesson3.id, skillId: skillTypedFunctions.id } },
+update: {},
+create: { lessonId: tsLesson3.id, skillId: skillTypedFunctions.id },
+});
+
+const tsMission3 = await prisma.mission.upsert({
+where: { lessonId_slug: { lessonId: tsLesson3.id, slug: "fix-the-function-call" } },
+update: {
+title: "Fix the Function Call",
+type: "debug_challenge",
+status: ContentStatus.PUBLISHED,
+starterCode: "function greet(name: string): string {\n return \"Hello, \" + name;\n}\n\ngreet(42);",
+explanation: "greet expects a string parameter, but 42 is a number. Wrapping it in quotes, like greet(\"42\"), satisfies the parameter type.",
+xpReward: 10,
+difficulty: 2,
+},
+create: {
+lessonId: tsLesson3.id,
+slug: "fix-the-function-call",
+title: "Fix the Function Call",
+type: "debug_challenge",
+status: ContentStatus.PUBLISHED,
+starterCode: "function greet(name: string): string {\n return \"Hello, \" + name;\n}\n\ngreet(42);",
+explanation: "greet expects a string parameter, but 42 is a number. Wrapping it in quotes, like greet(\"42\"), satisfies the parameter type.",
+xpReward: 10,
+difficulty: 2,
+},
+});
+
+await prisma.missionSkill.upsert({
+where: { missionId_skillId: { missionId: tsMission3.id, skillId: skillTypedFunctions.id } },
+update: {},
+create: { missionId: tsMission3.id, skillId: skillTypedFunctions.id },
+});
+// ---------- Lesson 4 (TypeScript Tower) ----------
+const tsLesson4Content = [
+{ type: "heading", text: "Defining Interfaces" },
+{ type: "paragraph", text: "An interface names a reusable shape for an object, describing exactly which properties it must have and what type each one is." },
+{ type: "vocabulary", term: "Interface", definition: "A named definition describing the required properties and types of an object." },
+{ type: "vocabulary", term: "Property type", definition: "The type annotation on a single field within an interface or object." },
+{ type: "analogy", text: "An interface is like a job application form: it lists exactly which fields (properties) must be filled in, and what kind of answer (type) each one expects." },
+{ type: "code_example", language: "typescript", code: "interface User {\n name: string;\n age: number;\n}\n\nconst user: User = { name: \"Ada\", age: 32 };" },
+{ type: "line_explanation", lines: [
+{ line: "interface User {", explanation: "Declares a new named shape called User." },
+{ line: "name: string;", explanation: "Every User must have a name property that is a string." },
+{ line: "const user: User = { name: \"Ada\", age: 32 };", explanation: "This object matches the User interface, so TypeScript accepts it." },
+] },
+{ type: "callout", tone: "info", text: "If an object is missing a required property, or has the wrong type for one, TypeScript reports an error wherever that interface type is used." },
+{ type: "common_mistake", text: "Beginners sometimes forget a required property when creating an object that claims to match an interface, and are confused when TypeScript rejects it - every required property must be present." },
+{ type: "knowledge_check", question: "What does a TypeScript interface describe?", options: [
+"The runtime performance of a function",
+"The required properties and types of an object",
+"The visual styling of a component",
+"The order operations run in"
+], correctIndex: 1 },
+{ type: "summary", text: "Interfaces name a reusable object shape, listing required properties and their types so TypeScript can check that objects match consistently." },
+];
+
+const tsLesson4 = await prisma.lesson.upsert({
+where: { moduleId_slug: { moduleId: functionsAndInterfaces.id, slug: "defining-interfaces" } },
+update: { title: "Defining Interfaces", order: 2, status: ContentStatus.PUBLISHED, content: tsLesson4Content },
+create: { moduleId: functionsAndInterfaces.id, slug: "defining-interfaces", title: "Defining Interfaces", order: 2, status: ContentStatus.PUBLISHED, content: tsLesson4Content },
+});
+
+await prisma.lessonSkill.upsert({
+where: { lessonId_skillId: { lessonId: tsLesson4.id, skillId: skillInterfaces.id } },
+update: {},
+create: { lessonId: tsLesson4.id, skillId: skillInterfaces.id },
+});
+
+const tsMission4 = await prisma.mission.upsert({
+where: { lessonId_slug: { lessonId: tsLesson4.id, slug: "write-a-user-interface" } },
+update: {
+title: "Write a User Interface",
+type: "code_writing",
+status: ContentStatus.PUBLISHED,
+starterCode: "// Define an interface named User with:\n// - a name property (string)\n// - an age property (number)\n",
+explanation: "A correct interface looks like: interface User { name: string; age: number; }",
+xpReward: 10,
+difficulty: 2,
+},
+create: {
+lessonId: tsLesson4.id,
+slug: "write-a-user-interface",
+title: "Write a User Interface",
+type: "code_writing",
+status: ContentStatus.PUBLISHED,
+starterCode: "// Define an interface named User with:\n// - a name property (string)\n// - an age property (number)\n",
+explanation: "A correct interface looks like: interface User { name: string; age: number; }",
+xpReward: 10,
+difficulty: 2,
+},
+});
+
+await prisma.missionSkill.upsert({
+where: { missionId_skillId: { missionId: tsMission4.id, skillId: skillInterfaces.id } },
+update: {},
+create: { missionId: tsMission4.id, skillId: skillInterfaces.id },
+});
+
+
 // ---------- Mission prompts, options, and grading specs ----------
 type MissionMeta = {
   prompt: string;
@@ -1307,7 +1607,24 @@ const MISSION_META: Record<string, MissionMeta> = {
   "predict-the-branch": {
     prompt: "What does this code print to the console?",
     test: { checkType: "text_exact", answer: "Not hot" },
-  },
+  "spot-the-valid-annotation": {
+prompt: "Which type annotation correctly restricts a variable to text values only?",
+options: ["let name: string;", "let name: number;", "let name: boolean;", "let name: any;"],
+test: { checkType: "mc", correctIndex: 0 },
+},
+"predict-the-inferred-type": {
+prompt: "What type does TypeScript infer for the count variable, based on its initial value?",
+test: { checkType: "text_exact", answer: "number" },
+},
+"fix-the-function-call": {
+prompt: "Fix the call below so it passes a valid argument to greet, then submit.",
+test: { checkType: "regex_all", patterns: ['greet\\([\'"]'] },
+},
+"write-a-user-interface": {
+prompt: "Write an interface named User with a name property (string) and an age property (number), then submit.",
+test: { checkType: "regex_all", patterns: ["interface\\s+User", "name\\s*:\\s*string", "age\\s*:\\s*number"] },
+},
+},
   "fix-the-infinite-loop": {
     prompt: "Fix the loop so it prints 0 through 4 and terminates, then submit. Your code will actually run.",
     test: { checkType: "js_run", expectedLogs: ["0", "1", "2", "3", "4"] },
@@ -1328,7 +1645,7 @@ for (const [slug, meta] of Object.entries(MISSION_META)) {
   });
 }
 
-console.log("Seed complete: worlds, Web Foundations (2 modules, 4 lessons, 4 missions), HTML Harbor (2 modules, 4 lessons, 4 missions), CSS City (2 modules, 4 lessons, 4 missions), and JavaScript Jungle (2 modules, 4 lessons, 4 missions) upserted.");
+console.log("Seed complete: worlds, Web Foundations (2 modules, 4 lessons, 4 missions), HTML Harbor (2 modules, 4 lessons, 4 missions), CSS City (2 modules, 4 lessons, 4 missions), JavaScript Jungle (2 modules, 4 lessons, 4 missions), and TypeScript Tower (2 modules, 4 lessons, 4 missions) upserted.");
 }
 
 main()
