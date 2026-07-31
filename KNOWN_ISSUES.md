@@ -7,12 +7,12 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 ### Title: Curriculum content volume is far below the launch minimum
 - Severity: Medium
 - Area: Curriculum
-- Description: 4 of 17 worlds (Web Foundations, HTML Harbor, CSS City, and JavaScript Jungle) now have real published content: 8 modules, 16 lessons, 16 missions total. CLAUDE.md section 12 requires at least 30 lessons and 100 missions at launch.
+- Description: 5 of 17 worlds (Web Foundations, HTML Harbor, CSS City, JavaScript Jungle, and TypeScript Tower) now have real published content: 10 modules, 20 lessons, 20 missions total. CLAUDE.md section 12 requires at least 30 lessons and 100 missions at launch.
 - Impact: The product is not launch-ready from a content perspective, even though the underlying engine (data model, seed pipeline, renderer, progress tracking, and now real mission grading) is real and working, and now proven to extend cleanly to a fourth world.
-- Workaround: The other 13 worlds are correctly marked "Upcoming" in the UI rather than shown as empty/broken, per CLAUDE.md section 11.
+- Workaround: The other 12 worlds are correctly marked "Upcoming" in the UI rather than shown as empty/broken, per CLAUDE.md section 11.
 - Status: Open
 - Date Logged: 2026-07-29
-- Date Updated: 2026-07-30 (JavaScript Jungle published, raising real content from 3 to 4 worlds and from 12 to 16 lessons/missions; all 16 missions across all four worlds then given real grading specs instead of preview-only XP text)
+- Date Updated: 2026-07-30 (JavaScript Jungle published, raising real content from 3 to 4 worlds and from 12 to 16 lessons/missions; all 16 missions across all four worlds then given real grading specs instead of preview-only XP text; TypeScript Tower published in a follow-up pass the same day, raising real content to 5 worlds and 20 lessons/missions, all server-graded)
 
 ### Title: The mission code input is a plain textarea, not a full code editor
 - Severity: Low
@@ -51,6 +51,16 @@ Use this file to track known bugs, limitations, and technical debt discovered du
 - Workaround/Fix: Added prompt/options fields to Mission and a per-mission grading spec (MissionTest.expected) covering five check types: multiple choice, exact-text prediction (with acceptable-answer variants), regex-based code checks, HTML nesting-order checks, and one mission that actually executes the learner's JavaScript in a sandboxed Node vm (hard timeout, console-only global) and compares captured output. Built a real client component (mission-solver.tsx) rendering the right input per mission type, and a submitMissionAttempt server action that re-fetches and validates the mission server-side (never trusting the client), grades it, records a real MissionAttempt, and awards XP/skill mastery only on a genuine first pass. Verified live end to end for a predict_output mission and a multiple_choice mission: both returned "Mission passed", awarded XP exactly once, and updated the dashboard's Total XP, Level, and Missions Solved stat.
 - Status: Resolved
 - Date Logged: 2026-07-29
+- Date Resolved: 2026-07-30
+
+### Title: A clipboard paste inserted new content one line too early, breaking a TypeScript build
+- Severity: Medium
+- Area: Tooling / Content authoring workflow
+- Description: While adding TypeScript Tower's mission grading specs to prisma/seed.ts, a clipboard paste intended to insert four new MISSION_META entries after an existing entry's closing brace instead landed one line earlier, inside the previous entry (predict-the-branch), because the click used to position the cursor was based on a screenshot taken before the search panel closed and the view had shifted slightly. The file was still valid-looking (brace count balanced) because a stray closing brace from the earlier entry ended up misplaced later in the object, so the mistake was not caught by a quick visual check.
+- Impact: Railway's build failed with a TypeScript error ("Object literal may only specify known properties"), since the new entries were parsed as invalid properties of the wrong object. No user-facing downtime, since Railway keeps the previous successful deployment active until a new build succeeds.
+- Workaround/Fix: Diagnosed directly from Railway's build logs, which named the exact line and reason. Fixed by copying the full file to the clipboard, programmatically counting brace depth (both with and without string-literal contents stripped out) to pinpoint exactly where the object was unbalanced, then using the editor's Find and Replace (not manual clicking) to insert the missing closing brace and remove the stray one. Verified the fix by re-checking brace balance before committing again, then confirmed the second deployment succeeded and the new mission graded correctly live.
+- Status: Resolved
+- Date Logged: 2026-07-30
 - Date Resolved: 2026-07-30
 
 ### Title: Mastery scoring was not implemented
